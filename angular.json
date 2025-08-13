@@ -24,9 +24,12 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
+              "src/favicon.ico",
+              "src/assets",
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "src/assets/images",
+                "output": "/assets/images/"
               }
             ],
             "styles": [
@@ -82,9 +85,12 @@
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
+              "src/favicon.ico",
+              "src/assets",
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "src/assets/images",
+                "output": "/assets/images/"
               }
             ],
             "styles": [
@@ -94,5 +100,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "17cf080b-08c8-4780-9ba6-1d3e3ca00a53"
   }
 }

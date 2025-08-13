@@ -1,0 +1,2783 @@
+--- Файл: D:\DnDchess\src\index.html ---
+
+<!-- Файл: src/index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DnDchess</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+
+--- Файл: D:\DnDchess\src\main.ts ---
+
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+--- Файл: D:\DnDchess\src\styles.scss ---
+
+/* styles.scss или в соответствующих файлах компонентов */
+:root {
+  --primary: #3a529c;
+  --primary-light: #4a6bda;
+  --text: #2d3748;
+  --text-light: #718096;
+}
+/* Глобальные стили */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #282828;
+  color: #333;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Меню */
+.chess-menu {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    margin: 0 0.5rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    &.active {
+      background: rgb(58, 58, 58);
+      color: #6e8efb;
+      font-weight: bold;
+    }
+  }
+}
+
+/* Лобби */
+.lobby {
+  background: rgb(9, 9, 9);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+
+  h2 {
+    margin-top: 0;
+    color: #444;
+  }
+
+  button {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    margin: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    &:disabled {
+      background: #363636;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 0.5rem;
+    width: 200px;
+    font-size: 1rem;
+  }
+
+  .error-message {
+    color: #e74c3c;
+    margin-top: 1rem;
+  }
+}
+
+/* Шахматная доска */
+.chessboard {
+  display: inline-block;
+  border: 15px solid #8B4513; /* деревянная рамка */
+  border-radius: 5px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  margin-top: 1rem;
+  background: #232323; /* цвет дерева для доски */
+
+  .row {
+    display: flex;
+  }
+
+  .cell {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+
+    &:nth-child(odd) {
+      background: #b58863;
+    }
+
+    &:nth-child(even) {
+      background: #f0d9b5;
+    }
+
+    &.selected {
+      background: rgba(52, 152, 219, 0.7) !important;
+    }
+
+    span {
+      font-size: 40px;
+      user-select: none;
+      pointer-events: none;
+      z-index: 2;
+
+      &.white {
+        color: #fff;
+        text-shadow: 1px 1px 2px #000;
+      }
+
+      &.black {
+        color: #000;
+        text-shadow: 1px 1px 2px #fff;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(46, 204, 113, 0.3);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) {
+      background: #f0d9b5;
+    }
+
+    &:nth-child(even) {
+      background: #b58863;
+    }
+  }
+}
+
+/* Игровая страница */
+.game {
+  text-align: center;
+  background: rgb(43, 43, 43);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+
+  h1 {
+    margin-top: 0;
+    color: #444;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #666;
+  }
+
+  .leave-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    margin-top: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .chessboard .cell {
+    width: 40px;
+    height: 40px;
+
+    span {
+      font-size: 30px;
+    }
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\app.component.html ---
+
+<div class="app-container">
+  <header class="app-header">
+    <div class="header-content">
+
+      <nav class="chess-menu">
+        <a *ngFor="let mode of chessModes" 
+           [routerLink]="['/chess', mode.path]" 
+           routerLinkActive="active"
+           class="menu-item"
+           [attr.title]="mode.title">
+          <span class="menu-icon">{{mode.icon}}</span>
+          <span class="menu-tooltip">
+            <span class="tooltip-title">{{mode.title}}</span>
+            <span class="tooltip-description">{{mode.description}}</span>
+          </span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+--- Файл: D:\DnDchess\src\app\app.component.scss ---
+
+/* Глобальные переменные */
+:root {
+  --primary: #3a529c;
+  --primary-light: #4a6bda;
+  --text: #2d3748;
+  --text-light: #718096;
+  --bg: #f8fafc;
+  --menu-bg: rgba(255, 255, 255, 0.96);
+  --border: rgba(0, 0, 0, 0.08);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Базовые стили */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Шапка - стеклянный эффект */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--menu-bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  height: 90px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+
+  .header-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Заголовок */
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+  padding: 0 24px 0 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: linear-gradient(to bottom, 
+      transparent 0%, 
+      var(--border) 20%, 
+      var(--border) 80%, 
+      transparent 100%);
+  }
+
+  span {
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Меню иконок */
+.chess-menu {
+  display: flex;
+  justify-content: center; // Добавлено центрирование по горизонтали
+  align-items: center;    // Добавлено центрирование по вертикали
+  gap: 8px;
+  height: 100%;
+  width: 100%;           // Добавлено для правильного центрирования
+  margin: 0 auto;        // Добавлено для дополнительного центрирования
+  padding: 0 20px;
+
+  .menu-item {
+    text-decoration: none;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--text-light);
+    transition: var(--transition);
+    position: relative;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(74, 107, 218, 0.08);
+      color: var(--primary);
+      transform: translateY(-2px);
+
+      .menu-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
+
+    &.active {
+      background: rgba(74, 107, 218, 0.12);
+      color: var(--primary);
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      transition: var(--transition);
+    }
+
+    .menu-tooltip {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      min-width: 220px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: var(--transition);
+      z-index: 10;
+      text-align: left;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--border);
+
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        right: 20px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: transparent transparent rgba(255, 255, 255, 0.88) transparent;
+        filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.05));
+      }
+
+      .tooltip-title {
+        display: block;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 4px;
+        font-size: 15px;
+      }
+
+      .tooltip-description {
+        display: block;
+        font-size: 14px;
+        color: var(--text-light);
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+/* Основное содержимое */
+.main-content {
+  flex: 1;
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .app-header {
+    height: 64px;
+    padding: 0 16px;
+
+    .header-title {
+      font-size: 1.25rem;
+      padding-right: 16px;
+    }
+  }
+
+  .chess-menu .menu-item {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .main-content {
+    padding: 24px 16px;
+  }
+}
+
+
+--- Файл: D:\DnDchess\src\app\app.component.ts ---
+
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+  imports: [RouterOutlet, CommonModule, RouterLink]
+})
+export class AppComponent {
+  constructor(private router: Router) {}
+  chessModes = [
+    {
+      path: 'classic',
+      title: 'Classic Chess',
+      description: 'Traditional 8x8 chess with standard rules',
+      icon: '♔'
+    },
+    {
+      path: '5d',
+      title: '5D Chess',
+      description: 'Multidimensional time-travel chess',
+      icon: '🌀'
+    },
+    {
+      path: 'dnd',
+      title: 'D&D Chess',
+      description: 'Fantasy RPG chess with special abilities',
+      icon: '⚔️'
+    }
+  ];
+  getCurrentModeTitle(): string {
+    const url = this.router.url;
+    if (url.includes('/chess/classic')) return 'Classic Chess';
+    if (url.includes('/chess/5d')) return '5D Chess';
+    if (url.includes('/chess/dnd')) return 'D&D Chess';
+    return 'Chess';
+}
+}
+
+--- Файл: D:\DnDchess\src\app\app.config.ts ---
+
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideDatabase, getDatabase } from '@angular/fire/database';
+import { routes } from './app.routes';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
+import { provideZoneChangeDetection } from '@angular/core';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBj1T7DGrGLTfapIWb2wXKdPC9FbbOeluo",
+  authDomain: "dndchess-dbcbe.firebaseapp.com",
+  databaseURL: "https://dndchess-dbcbe-default-rtdb.firebaseio.com",
+  projectId: "dndchess-dbcbe",
+  storageBucket: "dndchess-dbcbe.appspot.com",
+  messagingSenderId: "455536765703",
+  appId: "1:455536765703:web:2b2e60048e6abeffdd33a2",
+};
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideAnimations(),
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideFirebaseApp(() => initializeApp(firebaseConfig)),
+    provideDatabase(() => getDatabase()),
+  ],
+};
+
+--- Файл: D:\DnDchess\src\app\app.routes.ts ---
+
+import { Routes } from '@angular/router';
+import { LobbyComponent } from './components/lobby/lobby.component';
+import { GameComponent } from './components/game/game.component';
+
+export const routes: Routes = [
+  { 
+    path: 'chess', 
+    children: [
+      { 
+        path: 'classic', 
+        component: LobbyComponent, 
+        data: { gameType: 'classic' } 
+      },
+      { 
+        path: '5d', 
+        component: LobbyComponent, 
+        data: { gameType: '5d' } 
+      },
+      { 
+        path: 'dnd', 
+        component: LobbyComponent, 
+        data: { gameType: 'dnd' } 
+      },
+      { 
+        path: 'game/:id', 
+        component: GameComponent 
+      }
+    ]
+  },
+  { path: '', redirectTo: 'chess/classic', pathMatch: 'full' }
+];
+
+--- Файл: D:\DnDchess\src\app\components\chessboard\chessboard.component.html ---
+
+<div class="chessboard-wrapper">
+    <div class="game-type-header">
+      <h2>{{ getGameTypeDisplayName() }}</h2>
+    </div>
+    <div class="chessboard-container">
+      <div class="chessboard" [class.dnd-mode]="gameType === 'dnd'"
+           [class.classic-mode]="gameType === 'classic'"
+           [class.five-d-mode]="gameType === '5d'">
+           <div *ngIf="gameType === 'dnd'" class="dnd-decorations">
+            <div class="web web-top-left"></div>
+            <div class="chandelier chandelier-left"></div>
+            <div class="chandelier chandelier-right"></div>
+            <div class="pumpkin"></div>
+            <div class="point-light point-light-left"></div>
+            <div class="point-light point-light-right"></div>
+          </div>        
+        
+        <div *ngFor="let row of [0,1,2,3,4,5,6,7]; let y = index" class="row">
+          <div
+            *ngFor="let col of [0,1,2,3,4,5,6,7]; let x = index"
+            class="cell"
+            [class.selected]="selectedPiece?.x === x && selectedPiece?.y === y"
+            [class.possible-move]="isPossibleMove({x, y})"
+            (click)="handleCellClick({x, y})"
+          >
+            <span *ngIf="getPieceAt({x, y}) as piece" 
+                  [class.white]="piece.color === 'white'"
+                  [class.black]="piece.color === 'black'"
+                  [class.low-health]="gameType === 'dnd' && piece.health <= 30">
+              {{ getPieceSymbol(piece.type) }}
+            </span>
+            
+            <div *ngIf="isPossibleMove({x, y})" class="move-dot"></div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="side-panel" *ngIf="selectedPieceInfo"
+           [class.dnd-mode]="gameType === 'dnd'"
+           [class.classic-mode]="gameType === 'classic'"
+           [class.five-d-mode]="gameType === '5d'">
+        <div class="panel-header">
+          <h3>{{ getGameTypeDisplayName() }}</h3>
+          <span class="piece-icon">{{ getPieceSymbol(selectedPieceInfo.type) }}</span>
+          <h3>{{ selectedPieceInfo.type | titlecase }}</h3>
+        </div>
+        
+        <!-- D&D специфичная информация -->
+        <div *ngIf="gameType === 'dnd'" class="health-section">
+          <div class="health-bar">
+            <div class="health-fill" [style.width.%]="(selectedPieceInfo.health / selectedPieceInfo.maxHealth) * 100"></div>
+            <span class="health-text">{{ selectedPieceInfo.health }}/{{ selectedPieceInfo.maxHealth }} HP</span>
+          </div>
+        </div>
+  
+        <div *ngIf="gameType === 'dnd'" class="move-options">
+          <div class="option-buttons">
+            <button class="move-option" 
+                    [class.active]="selectedMoveType === 'normal'"
+                    (click)="selectMoveType('normal')">
+              <span class="option-icon">♟</span>
+              <span class="option-label">Normal Move</span>
+            </button>
+            
+            <button class="move-option ability-option"
+                    [class.active]="selectedMoveType === 'ability'"
+                    [class.disabled]="selectedPieceInfo.abilityCharges <= 0"
+                    (click)="selectMoveType('ability')">
+              <span class="option-icon">⚔️</span>
+              <span class="option-label">Attack ({{selectedPieceInfo.abilityCharges}}/3)</span>
+            </button>
+          </div>
+        </div>
+  
+        <!-- Для классических шахмат и 5D -->
+        <div *ngIf="gameType !== 'dnd'" class="game-info">
+          <p>{{ gameType === '5d' ? '5D Chess with Multiverse Time Travel' : 'Standard chess rules apply' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+--- Файл: D:\DnDchess\src\app\components\chessboard\chessboard.component.scss ---
+
+// Добавь это в chessboard.component.scss
+
+/* Общие стили для всех режимов */
+.chessboard {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 30px rgba(0,0,0,0.3);
+  transition: all 0.5s ease;
+  
+  .cell {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.05);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    &:hover::before {
+      opacity: 1;
+    }
+    
+    &.selected {
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(52, 152, 219, 0.5);
+        box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
+        z-index: -1;
+      }
+    }
+    
+    .move-dot {
+      box-shadow: 0 0 10px 2px rgba(46, 204, 113, 0.8);
+      background: radial-gradient(circle, rgba(46, 204, 113, 1) 30%, transparent 70%);
+    }
+  }
+}
+
+/* Классические шахматы - элегантный деревянный стиль */
+.chessboard.classic-mode {
+  border: 15px solid #5D4037;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(93, 64, 55, 0.3) 0%, rgba(93, 64, 55, 0.1) 100%);
+    z-index: 0;
+  }
+  
+  .cell {
+    &:nth-child(odd) {
+      background: rgba(210, 180, 140, 0.9);
+    }
+    
+    &:nth-child(even) {
+      background: rgba(139, 69, 19, 0.9);
+    }
+  }
+  
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) {
+      background: rgba(139, 69, 19, 0.9);
+    }
+    
+    &:nth-child(even) {
+      background: rgba(210, 180, 140, 0.9);
+    }
+  }
+  
+  span.white {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+  
+  span.black {
+    filter: drop-shadow(0 2px 4px rgba(255,255,255,0.3));
+  }
+}
+
+/* D&D режим - мрачное подземелье с магическими эффектами */
+.chessboard.dnd-mode {
+  border: 15px solid #8E44AD;
+  box-shadow: 0 0 30px rgba(142, 68, 173, 0.5);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(142, 68, 173, 0.2) 0%, rgba(41, 128, 185, 0.1) 100%);
+    z-index: 0;
+  }
+  
+  .cell {
+    background: rgba(44, 62, 80, 0.7) !important;
+    border: 1px solid rgba(255,255,255,0.05);
+    
+    &:nth-child(odd) {
+      background: rgba(44, 62, 80, 0.5) !important;
+    }
+    
+    &:nth-child(even) {
+      background: rgba(142, 68, 173, 0.3) !important;
+    }
+    
+    &.selected {
+      background: rgba(155, 89, 182, 0.7) !important;
+      
+      &::after {
+        background: rgba(155, 89, 182, 0.5);
+        box-shadow: 0 0 15px rgba(155, 89, 182, 0.7);
+      }
+    }
+  }
+  
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) {
+      background: rgba(142, 68, 173, 0.3) !important;
+    }
+    
+    &:nth-child(even) {
+      background: rgba(44, 62, 80, 0.5) !important;
+    }
+  }
+  
+  span.white {
+    color: #f1c40f !important;
+    text-shadow: 0 0 10px #f1c40f, 0 0 20px #f39c12;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  }
+  
+  span.black {
+    color: #e74c3c !important;
+    text-shadow: 0 0 10px #c0392b, 0 0 20px #e74c3c;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  }
+  
+  .move-dot {
+    box-shadow: 0 0 15px 3px rgba(241, 196, 15, 0.8);
+    background: radial-gradient(circle, rgba(241, 196, 15, 1) 30%, transparent 70%);
+  }
+  
+  // Магические свечения по краям доски
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid transparent;
+    border-image: linear-gradient(45deg, #8e44ad, #3498db, #8e44ad);
+    border-image-slice: 1;
+    pointer-events: none;
+    z-index: 5;
+    animation: borderGlow 3s infinite linear;
+  }
+  
+  @keyframes borderGlow {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.3; }
+  }
+}
+
+/* 5D Chess - футуристический космический стиль */
+.chessboard.five-d-mode {
+  border: 15px solid #3498DB;
+  box-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.2) 0%, rgba(41, 128, 185, 0.1) 100%);
+    z-index: 0;
+  }
+  
+  .cell {
+    background: rgba(25, 42, 86, 0.7) !important;
+    border: 1px solid rgba(255,255,255,0.1);
+    
+    &:nth-child(odd) {
+      background: rgba(25, 42, 86, 0.5) !important;
+    }
+    
+    &:nth-child(even) {
+      background: rgba(52, 152, 219, 0.3) !important;
+    }
+    
+    &.selected {
+      background: rgba(52, 152, 219, 0.7) !important;
+      
+      &::after {
+        background: rgba(52, 152, 219, 0.5);
+        box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
+      }
+    }
+  }
+  
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) {
+      background: rgba(52, 152, 219, 0.3) !important;
+    }
+    
+    &:nth-child(even) {
+      background: rgba(25, 42, 86, 0.5) !important;
+    }
+  }
+  
+  span.white {
+    color: #2ecc71 !important;
+    text-shadow: 0 0 10px #2ecc71, 0 0 20px #27ae60;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  }
+  
+  span.black {
+    color: #9b59b6 !important;
+    text-shadow: 0 0 10px #8e44ad, 0 0 20px #9b59b6;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  }
+  
+  .move-dot {
+    box-shadow: 0 0 15px 3px rgba(46, 204, 113, 0.8);
+    background: radial-gradient(circle, rgba(46, 204, 113, 1) 30%, transparent 70%);
+  }
+  
+  // Эффект сетки для многомерности
+  .grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      linear-gradient(rgba(52, 152, 219, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 152, 219, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  // Анимированные частицы
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(52, 152, 219, 0.3) 0%, transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(46, 204, 113, 0.3) 0%, transparent 30%);
+      animation: particleMove 20s infinite alternate;
+    }
+  }
+  
+  @keyframes particleMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(10px, 10px); }
+  }
+}
+
+/* Стили для side-panel в разных режимах */
+.side-panel {
+  &.classic-mode {
+    background: linear-gradient(135deg, #f5f5dc 0%, #e6d8b5 100%);
+    border: 1px solid #d2b48c;
+    
+    h3 {
+      color: #5D4037;
+    }
+  }
+  
+  &.dnd-mode {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: #ecf0f1;
+    border: 1px solid #8e44ad;
+    
+    h3 {
+      color: #f1c40f;
+    }
+    
+    .health-bar {
+      background: rgba(0,0,0,0.3) !important;
+      border: 1px solid #f1c40f;
+    }
+  }
+  
+  &.five-d-mode {
+    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+    color: #e1f5fe;
+    border: 1px solid #3498db;
+    
+    h3 {
+      color: #00e5ff;
+    }
+  }
+}
+/* Классические шахматы - благородные переливы дерева и золота */
+.chessboard.classic-mode {
+    border: 15px solid #5D4037;
+    background: linear-gradient(
+      135deg,
+      #8B4513 0%,
+      #A0522D 25%,
+      #CD853F 50%,
+      #D2B48C 75%,
+      #F5DEB3 100%
+    );
+    background-size: 400% 400%;
+    animation: classicGradient 15s ease infinite;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(93, 64, 55, 0.7) 0%,
+        rgba(210, 180, 140, 0.3) 50%,
+        rgba(93, 64, 55, 0.7) 100%
+      );
+      z-index: 0;
+    }
+  
+    @keyframes classicGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  }
+  
+  /* D&D режим - мистические фиолетово-черные переливы */
+  .chessboard.dnd-mode {
+    border: 15px solid #8E44AD;
+    background: linear-gradient(
+      135deg,
+      #2C3E50 0%,
+      #4A235A 25%,
+      #6C3483 50%,
+      #8E44AD 75%,
+      #AF7AC5 100%
+    );
+    background-size: 400% 400%;
+    animation: dndGradient 15s ease infinite;
+    box-shadow: 0 0 30px rgba(142, 68, 173, 0.7);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(44, 62, 80, 0.8) 0%,
+        rgba(142, 68, 173, 0.4) 50%,
+        rgba(44, 62, 80, 0.8) 100%
+      );
+      z-index: 0;
+    }
+  
+    @keyframes dndGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  }
+  
+  /* 5D Chess - космические сине-голубые переливы */
+  .chessboard.five-d-mode {
+    border: 15px solid #3498DB;
+    background: linear-gradient(
+      135deg,
+      #0F2027 0%,
+      #203A43 25%,
+      #2C5364 50%,
+      #3498DB 75%,
+      #00d2ff 100%
+    );
+    background-size: 400% 400%;
+    animation: fiveDGradient 15s ease infinite;
+    box-shadow: 0 0 30px rgba(52, 152, 219, 0.7);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 32, 39, 0.8) 0%,
+        rgba(52, 152, 219, 0.4) 50%,
+        rgba(15, 32, 39, 0.8) 100%
+      );
+      z-index: 0;
+    }
+  
+    @keyframes fiveDGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  }
+  
+  /* Добавим эффект "звездной пыли" для 5D режима */
+  .five-d-mode .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+    
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(2px 2px at 20% 30%, white 1px, transparent 2px),
+        radial-gradient(2px 2px at 80% 70%, #00d2ff 1px, transparent 2px),
+        radial-gradient(2px 2px at 40% 60%, white 1px, transparent 2px),
+        radial-gradient(2px 2px at 60% 20%, #00d2ff 1px, transparent 2px);
+      background-size: 100px 100px;
+      animation: starsMove 50s linear infinite;
+    }
+    
+    &::after {
+      background: 
+        radial-gradient(1px 1px at 10% 80%, white 1px, transparent 2px),
+        radial-gradient(1px 1px at 90% 10%, #00d2ff 1px, transparent 2px),
+        radial-gradient(1px 1px at 30% 50%, white 1px, transparent 2px),
+        radial-gradient(1px 1px at 70% 90%, #00d2ff 1px, transparent 2px);
+      background-size: 150px 150px;
+      animation: starsMove 80s linear infinite reverse;
+    }
+  }
+  
+  @keyframes starsMove {
+    0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+    100% { background-position: 100px 100px, -100px -100px, 50px -50px, -50px 50px; }
+  }
+  
+  /* Улучшенные эффекты для фигур */
+  .chessboard {
+    span.white {
+      transition: all 0.3s ease;
+      text-shadow: 0 0 8px currentColor;
+    }
+    
+    span.black {
+      transition: all 0.3s ease;
+      text-shadow: 0 0 8px currentColor;
+    }
+    
+    .cell:hover span {
+      transform: scale(1.1);
+    }
+  }
+  
+  /* Особые эффекты для D&D фигур */
+  .dnd-mode {
+    span.white {
+      animation: whitePulse 3s infinite alternate;
+    }
+    
+    span.black {
+      animation: blackPulse 3s infinite alternate;
+    }
+    
+    @keyframes whitePulse {
+      0% { filter: drop-shadow(0 0 5px #f1c40f); }
+      100% { filter: drop-shadow(0 0 15px #f39c12); }
+    }
+    
+    @keyframes blackPulse {
+      0% { filter: drop-shadow(0 0 5px #e74c3c); }
+      100% { filter: drop-shadow(0 0 15px #c0392b); }
+    }
+  }
+  
+  /* Особые эффекты для 5D фигур */
+  .five-d-mode {
+    span.white {
+      animation: whiteGlow 3s infinite alternate;
+    }
+    
+    span.black {
+      animation: blackGlow 3s infinite alternate;
+    }
+    
+    @keyframes whiteGlow {
+      0% { filter: drop-shadow(0 0 5px #2ecc71); }
+      100% { filter: drop-shadow(0 0 15px #27ae60); }
+    }
+    
+    @keyframes blackGlow {
+      0% { filter: drop-shadow(0 0 5px #9b59b6); }
+      100% { filter: drop-shadow(0 0 15px #8e44ad); }
+    }
+  }
+  /* Классические шахматы - теплые деревянные тона */
+.chessboard.classic-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(139, 69, 19, 0.9) 0%,
+      rgba(160, 82, 45, 0.9) 25%,
+      rgba(205, 133, 63, 0.9) 50%,
+      rgba(210, 180, 140, 0.9) 75%,
+      rgba(245, 222, 179, 0.9) 100%
+    );
+    background-size: 300% 300%;
+    animation: classicFlow 12s ease infinite;
+    backdrop-filter: blur(2px);
+    box-shadow: 
+      inset 0 0 20px rgba(210, 180, 140, 0.6),
+      0 0 30px rgba(139, 69, 19, 0.4);
+  }
+  
+  @keyframes classicFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  /* D&D режим - мистические фиолетовые тона */
+  .chessboard.dnd-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(44, 62, 80, 0.9) 0%,
+      rgba(74, 35, 90, 0.9) 25%,
+      rgba(108, 52, 131, 0.9) 50%,
+      rgba(142, 68, 173, 0.9) 75%,
+      rgba(175, 122, 197, 0.9) 100%
+    );
+    background-size: 300% 300%;
+    animation: dndFlow 10s ease infinite;
+    backdrop-filter: blur(3px);
+    box-shadow: 
+      inset 0 0 25px rgba(142, 68, 173, 0.7),
+      0 0 40px rgba(44, 62, 80, 0.5);
+  }
+  
+  @keyframes dndFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  /* 5D Chess - футуристические синие тона */
+  .chessboard.five-d-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 32, 39, 0.9) 0%,
+      rgba(32, 58, 67, 0.9) 25%,
+      rgba(44, 83, 100, 0.9) 50%,
+      rgba(52, 152, 219, 0.9) 75%,
+      rgba(0, 210, 255, 0.9) 100%
+    );
+    background-size: 300% 300%;
+    animation: fiveDFlow 8s ease infinite;
+    backdrop-filter: blur(2px);
+    box-shadow: 
+      inset 0 0 30px rgba(52, 152, 219, 0.6),
+      0 0 50px rgba(0, 210, 255, 0.3);
+  }
+  
+  @keyframes fiveDFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  /* Общие стили для стеклянного эффекта */
+  .chessboard {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      z-index: -1;
+    }
+    
+    .cell {
+      background-color: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(2px);
+    }
+    
+    .row:nth-child(odd) .cell:nth-child(even),
+    .row:nth-child(even) .cell:nth-child(odd) {
+      background-color: rgba(0, 0, 0, 0.15);
+    }
+  }
+  .chessboard {
+    background: transparent !important; /* Переопределяем любые другие стили */
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1; /* Помещаем под основное содержимое */
+    }
+  }
+  
+  /* Классические шахматы - гарантированно работает */
+  .chessboard.classic-mode::after {
+    background: linear-gradient(
+      135deg, 
+      #8B4513 0%, 
+      #A0522D 50%, 
+      #D2B48C 100%
+    );
+    animation: classicBg 15s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  /* D&D режим - 100% видимый фон */
+  .chessboard.dnd-mode::after {
+    background: linear-gradient(
+      135deg, 
+      #2C3E50 0%, 
+      #6C3483 50%, 
+      #8E44AD 100%
+    );
+    animation: dndBg 12s ease infinite;
+    background-size: 200% 200%;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.7);
+  }
+  
+  /* 5D Chess - гарантированное отображение */
+  .chessboard.five-d-mode::after {
+    background: linear-gradient(
+      135deg, 
+      #0F2027 0%, 
+      #203A43 50%, 
+      #3498DB 100%
+    );
+    animation: fiveDBg 10s ease infinite;
+    background-size: 200% 200%;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+  }
+  
+  /* Анимации */
+  @keyframes classicBg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  @keyframes dndBg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 50% 0%; }
+  }
+  
+  @keyframes fiveDBg {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+  }
+  
+  /* Клетки с прозрачностью для просмотра фона */
+  .chessboard .cell {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+  }
+  
+  .chessboard .row:nth-child(odd) .cell:nth-child(even),
+  .chessboard .row:nth-child(even) .cell:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+  }
+  body {
+    background: #222 !important; /* Темный фон страницы для контраста */
+  }
+
+--- Файл: D:\DnDchess\src\app\components\chessboard\chessboard.component.ts ---
+
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import type { GameState } from '../../models/game-state.model';
+import { Position } from '../../models/chess-piece.model';
+import { MultiplayerService } from '../../services/multiplayer.service';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-chessboard',
+  templateUrl: './chessboard.component.html',
+  styleUrls: ['./chessboard.component.scss'],
+  imports: [CommonModule]
+})
+export class ChessboardComponent implements OnChanges {
+  @Input() state!: GameState;
+  selectedPiece: Position | null = null;
+  selectedPieceInfo: any = null;
+  selectedMoveType: 'normal' | 'ability' | 'passive' = 'normal';
+  possibleMoves: Position[] = [];
+  gameType: 'classic' | '5d' | 'dnd' = 'classic';
+
+  constructor(private multiplayer: MultiplayerService) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['state']) {
+      this.gameType = this.state?.gameType || 'classic';
+      this.clearSelection();
+    }
+  }
+
+  getPieceAt(position: Position): any {
+    return this.state.pieces.find(p => 
+      p.position.x === position.x && p.position.y === position.y
+    );
+  }
+
+  getGameTypeDisplayName(): string {
+    switch(this.gameType) {
+      case '5d': return '5D Chess';
+      case 'dnd': return 'D&D Chess';
+      default: return 'Classic Chess';
+    }
+  }
+
+  getGameTypeName(type: string): string {
+    const names: Record<string, string> = {
+      'classic': 'Classic Chess',
+      '5d': '5D Chess',
+      'dnd': 'D&D Chess'
+    };
+    return names[type] || 'Chess';
+  }
+
+  getPieceSymbol(type: string): string {
+    const symbols: Record<string, string> = {
+      pawn: '♟', rook: '♜', knight: '♞',
+      bishop: '♝', queen: '♛', king: '♚'
+    };
+    return symbols[type] || '';
+  }
+
+  isPossibleMove(position: Position): boolean {
+    return this.possibleMoves.some(move => 
+      move.x === position.x && move.y === position.y
+    );
+  }
+
+  handleCellClick(position: Position): void {
+    const piece = this.getPieceAt(position);
+    
+    if (piece && piece.color === this.state.currentPlayer) {
+      this.selectPiece(position);
+      return;
+    }
+
+    if (this.selectedPiece) {
+      this.makeMove(position);
+    }
+  }
+
+  selectPiece(position: Position): void {
+    const piece = this.getPieceAt(position);
+    if (!piece || piece.color !== this.state.currentPlayer) return;
+
+    this.selectedPiece = position;
+    this.calculatePossibleMoves(position);
+    
+    this.selectedPieceInfo = {
+      type: piece.type,
+      color: piece.color,
+      ...(this.gameType === 'dnd' && {
+        health: piece.health,
+        maxHealth: piece.maxHealth,
+        abilityDamage: piece['abilityDamage'] || 20,
+        abilityCharges: piece.abilityCharges,
+        passiveCooldown: piece.passiveCooldown
+      })
+    };
+    this.selectedMoveType = 'normal';
+  }
+
+  calculatePossibleMoves(position: Position): void {
+    this.possibleMoves = [];
+    const piece = this.getPieceAt(position);
+    if (!piece) return;
+
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        const targetPos = {x, y};
+        if (this.gameType === 'dnd' && this.selectedMoveType === 'passive') {
+          this.possibleMoves.push(targetPos);
+        } else if (piece.canMove(targetPos, this.state)) {
+          this.possibleMoves.push(targetPos);
+        }
+      }
+    }
+  }
+
+  selectMoveType(type: 'normal' | 'ability' | 'passive'): void {
+    if (this.gameType !== 'dnd') return;
+    if (type === 'ability' && this.selectedPieceInfo?.abilityCharges <= 0) return;
+    if (type === 'passive' && this.selectedPieceInfo?.passiveCooldown > 0) return;
+    
+    this.selectedMoveType = type;
+    this.calculatePossibleMoves(this.selectedPiece!);
+  }
+
+  async makeMove(targetPosition: Position): Promise<void> {
+    if (!this.selectedPiece) return;
+
+    let success: boolean;
+    
+    if (this.gameType === 'dnd') {
+      switch (this.selectedMoveType) {
+        case 'ability':
+          success = await this.multiplayer.useAbility(this.selectedPiece, targetPosition);
+          break;
+        case 'passive':
+          success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, true);
+          break;
+        default:
+          success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
+      }
+    } else {
+      success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
+    }
+
+    if (success) {
+      this.clearSelection();
+    }
+  }
+
+  clearSelection(): void {
+    this.selectedPiece = null;
+    this.selectedPieceInfo = null;
+    this.possibleMoves = [];
+    this.selectedMoveType = 'normal';
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\components\game\game.component.html ---
+
+<div class="game">
+    <h1>Шахматы (Игра: {{ gameId }})</h1>
+    <p>Ход: {{ gameService.getState().currentPlayer === 'white' ? 'Белые' : 'Чёрные' }}</p>
+    <app-chessboard [state]="gameService.getState()"></app-chessboard>
+  </div>
+
+--- Файл: D:\DnDchess\src\app\components\game\game.component.scss ---
+
+.game {
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+
+  h1 {
+    color: #333;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #555;
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\components\game\game.component.ts ---
+
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { GameService } from '../../services/game.service';
+import { MultiplayerService } from '../../services/multiplayer.service';
+import { ChessboardComponent } from '../chessboard/chessboard.component';
+import { CommonModule } from '@angular/common';
+import { createInitialGameState } from '../../models/game-state.model';
+
+@Component({
+  selector: 'app-game',
+  standalone: true,
+  imports: [ChessboardComponent, CommonModule],
+  templateUrl: './game.component.html',
+  styleUrls: ['./game.component.scss']
+})
+export class GameComponent implements OnInit, OnDestroy {
+  gameId: string = '';
+  chessType: string = 'classic';
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    public gameService: GameService,
+    private multiplayer: MultiplayerService
+  ) {}
+
+  ngOnInit(): void {
+    this.gameId = this.route.snapshot.params['id'];
+    
+    // Извлекаем тип игры из ID (первые символы до дефиса)
+    const gameType = this.gameId.split('-')[0] as 'classic' | '5d' | 'dnd';
+    
+    if (!['classic', '5d', 'dnd'].includes(gameType)) {
+        this.router.navigate(['/chess/classic']);
+        return;
+    }
+    
+    this.chessType = gameType;
+    
+    // Инициализируем состояние игры с правильным типом
+    this.gameService.setState(createInitialGameState(gameType));
+    
+    if (this.gameId) {
+        this.multiplayer.joinGame(this.gameId);
+    }
+  }
+  
+  ngOnDestroy(): void {
+    this.multiplayer.ngOnDestroy();
+  }
+
+  onLeaveGame(): void {
+    this.router.navigate(['/chess', this.chessType]);
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\components\lobby\lobby.component.html ---
+
+<div class="lobby-container">
+  <div class="mode-indicator" *ngIf="currentMode">
+    <div class="mode-icon">{{currentMode.icon}}</div>
+    <div class="mode-title">{{currentMode.title}}</div>
+  </div>
+
+  <h2>Create or Join Game</h2>
+  
+  <div class="game-options">
+    <div class="option-card">
+      <h3>Create New Game</h3>
+      <button (click)="createGame()" [disabled]="isLoading">
+        {{ isLoading ? 'Creating...' : 'Create' }}
+      </button>
+    </div>
+
+    <div class="option-card">
+      <h3>Join Existing Game</h3>
+      <div class="input-group">
+        <input [(ngModel)]="gameId" placeholder="Game ID">
+        <button (click)="joinGame()" [disabled]="isLoading || !gameId">
+          {{ isLoading ? 'Joining...' : 'Join' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+</div>
+
+--- Файл: D:\DnDchess\src\app\components\lobby\lobby.component.scss ---
+
+.lobby-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgb(60, 60, 60);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: var(--box-shadow);
+  text-align: center;
+
+  h2 {
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    font-size: 2rem;
+  }
+
+  .game-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .mode-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: rgba(74, 107, 218, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(74, 107, 218, 0.2);
+    animation: fadeIn 0.3s ease-out;
+
+    .mode-icon {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    .mode-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .option-card {
+    background: rgb(0, 0, 0);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: var(--transition);
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+
+      input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+
+        &:focus {
+          outline: none;
+          border-color: var(--secondary-color);
+          box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+      }
+
+      button {
+        padding: 0.75rem 1.5rem;
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        transition: var(--transition);
+
+        &:hover {
+          background: adjust-color(#3498db, $lightness: -10%);
+          transform: translateY(-2px);
+        }
+
+        &:disabled {
+          background: #bdc3c7;
+          cursor: not-allowed;
+          transform: none;
+        }
+      }
+    }
+  }
+
+  .error-message {
+    color: var(--danger-color);
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(231, 76, 60, 0.1);
+    border-radius: var(--border-radius);
+  }
+}
+
+@media (max-width: 768px) {
+  .lobby-container {
+    padding: 1.5rem;
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    .option-card {
+      padding: 1rem;
+
+      .input-group {
+        flex-direction: column;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(74, 107, 218, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(74, 107, 218, 0.2);
+  animation: fadeIn 0.3s ease-out;
+
+  .mode-icon {
+    font-size: 2rem;
+    color: var(--primary);
+  }
+
+  .mode-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+--- Файл: D:\DnDchess\src\app\components\lobby\lobby.component.ts ---
+
+import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MultiplayerService } from '../../services/multiplayer.service';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-lobby',
+  standalone: true,
+  imports: [FormsModule, CommonModule],
+  templateUrl: './lobby.component.html',
+  styleUrls: ['./lobby.component.scss']
+})
+export class LobbyComponent {
+  gameId: string = '';
+  isLoading = false;
+  errorMessage: string | null = null;
+  currentMode: any;
+
+  chessModes = [
+    {
+      path: 'classic',
+      title: 'Classic Chess',
+      icon: '♔',
+      description: 'Traditional 8x8 chess'
+    },
+    {
+      path: '5d',
+      title: '5D Chess',
+      icon: '🌀',
+      description: 'Multidimensional chess'
+    },
+    {
+      path: 'dnd',
+      title: 'D&D Chess',
+      icon: '⚔️',
+      description: 'Fantasy RPG chess'
+    }
+  ];
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private multiplayer: MultiplayerService
+  ) {}
+
+  ngOnInit(): void {
+    // Получаем тип игры из параметров маршрута
+    const gameType = this.route.snapshot.data['gameType'] || 'classic';
+    this.currentMode = this.chessModes.find(m => m.path === gameType) || this.chessModes[0];
+  }
+
+  createGame() {
+    this.isLoading = true;
+    // Получаем тип игры из данных маршрута
+    const gameType = this.route.snapshot.data['gameType'] || 'classic';
+    
+    this.multiplayer.createGame(gameType).then(id => {
+        // Перенаправляем на страницу игры с правильным ID
+        this.router.navigate(['/chess/game', id]);
+    }).catch(error => {
+        this.errorMessage = 'Failed to create game: ' + error.message;
+        console.error('Create game error:', error);
+    }).finally(() => {
+        this.isLoading = false;
+    });
+  }
+
+  joinGame() {
+    if (!this.gameId) {
+        this.errorMessage = 'Please enter a game ID';
+        return;
+    }
+    
+    this.isLoading = true;
+    
+    // Проверяем формат ID (type-randomchars)
+    const parts = this.gameId.split('-');
+    if (parts.length < 2 || !['classic', '5d', 'dnd'].includes(parts[0])) {
+        this.errorMessage = 'Invalid game ID format';
+        this.isLoading = false;
+        return;
+    }
+    
+    this.router.navigate(['/chess/game', this.gameId]);
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\models\chess-piece.model.ts ---
+
+import { GameState } from './game-state.model';
+
+export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
+export type PieceColor = 'white' | 'black';
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export abstract class ChessPiece {
+  health: number = 100;
+  abilityCharges: number = 3;
+  passiveCooldown: number = 0;
+  maxHealth: number = 100;
+  
+  constructor(
+    public type: PieceType,
+    public position: Position,
+    public color: PieceColor,
+    public hasMoved: boolean = false
+  ) {}
+
+  abstract canMove(to: Position, gameState: GameState): boolean;
+
+  move(to: Position): void {
+    this.position = to;
+    this.hasMoved = true;
+    this.passiveCooldown = Math.max(0, this.passiveCooldown - 1);
+  }
+
+  useAbility(): void {
+    if (this.abilityCharges > 0) {
+      this.abilityCharges--;
+    }
+  }
+
+  canUsePassive(): boolean {
+    return this.passiveCooldown === 0;
+  }
+
+  usePassive(): void {
+    this.passiveCooldown = 3;
+  }
+
+  takeDamage(amount: number): void {
+    this.health = Math.max(0, this.health - amount);
+  }
+
+  heal(amount: number): void {
+    this.health = Math.min(this.maxHealth, this.health + amount);
+  }
+
+  getAbilityDescription(): string {
+    return 'Basic Attack: Deal 20 damage to target piece (3 charges per round)';
+  }
+
+  getPassiveDescription(): string {
+    return 'Phase Walk: Move through any piece (once every 3 turns)';
+  }
+
+  protected isPathClear(to: Position, gameState: GameState): boolean {
+    const dx = Math.sign(to.x - this.position.x);
+    const dy = Math.sign(to.y - this.position.y);
+
+    let x = this.position.x + dx;
+    let y = this.position.y + dy;
+
+    while (x !== to.x || y !== to.y) {
+      if (gameState.pieces.some(p => p.position.x === x && p.position.y === y)) {
+        return false;
+      }
+      x += dx;
+      y += dy;
+    }
+
+    return true;
+  }
+
+  toJSON() {
+    return {
+      type: this.type,
+      position: this.position,
+      color: this.color,
+      hasMoved: this.hasMoved,
+      health: this.health,
+      abilityCharges: this.abilityCharges,
+      passiveCooldown: this.passiveCooldown,
+      maxHealth: this.maxHealth
+    };
+  }
+}
+
+export class Pawn extends ChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('pawn', position, color, hasMoved);
+    this.maxHealth = 80;
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    const direction = this.color === 'white' ? 1 : -1;
+    const startRow = this.color === 'white' ? 1 : 6;
+
+    // Standard move
+    if (to.x === this.position.x && to.y === this.position.y + direction) {
+      return !gameState.pieces.some(p => p.position.x === to.x && p.position.y === to.y);
+    }
+
+    // Initial double move
+    if (!this.hasMoved && to.x === this.position.x && to.y === this.position.y + 2 * direction && this.position.y === startRow) {
+      const intermediatePos = { x: to.x, y: this.position.y + direction };
+      return !gameState.pieces.some(p => 
+        (p.position.x === to.x && p.position.y === to.y) ||
+        (p.position.x === intermediatePos.x && p.position.y === intermediatePos.y)
+      );
+    }
+
+    // Capture
+    if (Math.abs(to.x - this.position.x) === 1 && to.y === this.position.y + direction) {
+      const targetPiece = gameState.pieces.find(p => 
+        p.position.x === to.x && p.position.y === to.y
+      );
+      return targetPiece ? targetPiece.color !== this.color : false;
+    }
+
+    return false;
+  }
+}
+
+export class Rook extends ChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('rook', position, color, hasMoved);
+    this.maxHealth = 120;
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    if (to.x !== this.position.x && to.y !== this.position.y) return false;
+    if (!this.isPathClear(to, gameState)) return false;
+
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class Knight extends ChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('knight', position, color, hasMoved);
+    this.maxHealth = 90;
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    const dx = Math.abs(to.x - this.position.x);
+    const dy = Math.abs(to.y - this.position.y);
+    
+    if (!((dx === 1 && dy === 2) || (dx === 2 && dy === 1))) return false;
+    
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class Bishop extends ChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('bishop', position, color, hasMoved);
+    this.maxHealth = 95;
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    if (Math.abs(to.x - this.position.x) !== Math.abs(to.y - this.position.y)) {
+      return false;
+    }
+
+    if (!this.isPathClear(to, gameState)) return false;
+
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class Queen extends ChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('queen', position, color, hasMoved);
+    this.maxHealth = 110;
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    const isRookMove = (to.x === this.position.x || to.y === this.position.y);
+    const isBishopMove = (Math.abs(to.x - this.position.x) === Math.abs(to.y - this.position.y));
+    
+    if (!isRookMove && !isBishopMove) return false;
+
+    if (!this.isPathClear(to, gameState)) return false;
+
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class King extends ChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('king', position, color, hasMoved);
+    this.maxHealth = 150;
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    const dx = Math.abs(to.x - this.position.x);
+    const dy = Math.abs(to.y - this.position.y);
+    
+    if (dx > 1 || dy > 1) return false;
+    
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\models\dnd-chess-piece.model.ts ---
+
+import { ChessPiece, PieceType, PieceColor, Position } from './chess-piece.model';
+import { GameState } from './game-state.model';
+
+export abstract class DndChessPiece extends ChessPiece {
+  abilityDamage: number = 20;
+  passiveCooldownDuration: number = 3;
+
+  constructor(
+    type: PieceType,
+    position: Position,
+    color: PieceColor,
+    hasMoved: boolean = false
+  ) {
+    super(type, position, color, hasMoved);
+  }
+
+  canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) {
+      return true; // Can move through pieces when passive is available
+    }
+    return super.isPathClear(to, gameState);
+  }
+
+  override getAbilityDescription(): string {
+    return `${this.type} Attack: Deal ${this.abilityDamage} damage to target (${this.abilityCharges}/3 charges)`;
+  }
+
+  override getPassiveDescription(): string {
+    return `Phase Walk: Move through pieces (ready in ${this.passiveCooldown} turns)`;
+  }
+}
+
+export class DndPawn extends DndChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('pawn', position, color, hasMoved);
+    this.maxHealth = 100;
+    this.abilityDamage = 15;
+  }
+
+  override canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) return true;
+
+    const direction = this.color === 'white' ? 1 : -1;
+    const startRow = this.color === 'white' ? 1 : 6;
+
+    // Standard move
+    if (to.x === this.position.x && to.y === this.position.y + direction) {
+      return !gameState.pieces.some(p => p.position.x === to.x && p.position.y === to.y);
+    }
+
+    // Initial double move
+    if (!this.hasMoved && to.x === this.position.x && to.y === this.position.y + 2 * direction && this.position.y === startRow) {
+      const intermediatePos = { x: to.x, y: this.position.y + direction };
+      return !gameState.pieces.some(p => 
+        (p.position.x === to.x && p.position.y === to.y) ||
+        (p.position.x === intermediatePos.x && p.position.y === intermediatePos.y)
+      );
+    }
+
+    // Capture
+    if (Math.abs(to.x - this.position.x) === 1 && to.y === this.position.y + direction) {
+      const targetPiece = gameState.pieces.find(p => 
+        p.position.x === to.x && p.position.y === to.y
+      );
+      return targetPiece ? targetPiece.color !== this.color : false;
+    }
+
+    return false;
+  }
+}
+
+export class DndRook extends DndChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('rook', position, color, hasMoved);
+    this.maxHealth = 150;
+    this.abilityDamage = 25;
+  }
+
+  override canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) return true;
+    if (to.x !== this.position.x && to.y !== this.position.y) return false;
+    if (!this.isPathClear(to, gameState)) return false;
+
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class DndKnight extends DndChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('knight', position, color, hasMoved);
+    this.maxHealth = 120;
+    this.abilityDamage = 30;
+  }
+
+  override canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) return true;
+    
+    const dx = Math.abs(to.x - this.position.x);
+    const dy = Math.abs(to.y - this.position.y);
+    
+    if (!((dx === 1 && dy === 2) || (dx === 2 && dy === 1))) return false;
+    
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class DndBishop extends DndChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('bishop', position, color, hasMoved);
+    this.maxHealth = 130;
+    this.abilityDamage = 20;
+  }
+
+  override canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) return true;
+    if (Math.abs(to.x - this.position.x) !== Math.abs(to.y - this.position.y)) {
+      return false;
+    }
+
+    if (!this.isPathClear(to, gameState)) return false;
+
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class DndQueen extends DndChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('queen', position, color, hasMoved);
+    this.maxHealth = 140;
+    this.abilityDamage = 35;
+  }
+
+  override canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) return true;
+    
+    const isRookMove = (to.x === this.position.x || to.y === this.position.y);
+    const isBishopMove = (Math.abs(to.x - this.position.x) === Math.abs(to.y - this.position.y));
+    
+    if (!isRookMove && !isBishopMove) return false;
+
+    if (!this.isPathClear(to, gameState)) return false;
+
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+export class DndKing extends DndChessPiece {
+  constructor(position: Position, color: PieceColor, hasMoved: boolean = false) {
+    super('king', position, color, hasMoved);
+    this.maxHealth = 200;
+    this.abilityDamage = 15;
+  }
+
+  override canMove(to: Position, gameState: GameState): boolean {
+    if (this.canUsePassive()) return true;
+    
+    const dx = Math.abs(to.x - this.position.x);
+    const dy = Math.abs(to.y - this.position.y);
+    
+    if (dx > 1 || dy > 1) return false;
+    
+    const targetPiece = gameState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y
+    );
+    
+    return !targetPiece || targetPiece.color !== this.color;
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\models\game-state.model.ts ---
+
+import { Bishop, ChessPiece, King, Knight, Pawn, Queen, Rook } from './chess-piece.model';
+import { DndBishop, DndChessPiece, DndKing, DndKnight, DndPawn, DndQueen, DndRook } from './dnd-chess-piece.model';
+
+export interface GameState {
+  currentPlayer: 'white' | 'black';
+  pieces: (ChessPiece | DndChessPiece)[];
+  isCheck: boolean;
+  isCheckmate: boolean;
+  isStalemate: boolean;
+  id: string;
+  gameType: 'classic' | '5d' | 'dnd';
+  turnNumber: number;
+}
+
+export function createInitialGameState(gameType: 'classic' | '5d' | 'dnd' = 'classic'): GameState {
+  const pieces: (ChessPiece | DndChessPiece)[] = [];
+
+  // White pieces
+  if (gameType === 'dnd') {
+    pieces.push(new DndRook({ x: 0, y: 0 }, 'white'));
+    pieces.push(new DndKnight({ x: 1, y: 0 }, 'white'));
+    pieces.push(new DndBishop({ x: 2, y: 0 }, 'white'));
+    pieces.push(new DndQueen({ x: 3, y: 0 }, 'white'));
+    pieces.push(new DndKing({ x: 4, y: 0 }, 'white'));
+    pieces.push(new DndBishop({ x: 5, y: 0 }, 'white'));
+    pieces.push(new DndKnight({ x: 6, y: 0 }, 'white'));
+    pieces.push(new DndRook({ x: 7, y: 0 }, 'white'));
+    for (let i = 0; i < 8; i++) {
+      pieces.push(new DndPawn({ x: i, y: 1 }, 'white'));
+    }
+
+    // Black pieces
+    pieces.push(new DndRook({ x: 0, y: 7 }, 'black'));
+    pieces.push(new DndKnight({ x: 1, y: 7 }, 'black'));
+    pieces.push(new DndBishop({ x: 2, y: 7 }, 'black'));
+    pieces.push(new DndQueen({ x: 3, y: 7 }, 'black'));
+    pieces.push(new DndKing({ x: 4, y: 7 }, 'black'));
+    pieces.push(new DndBishop({ x: 5, y: 7 }, 'black'));
+    pieces.push(new DndKnight({ x: 6, y: 7 }, 'black'));
+    pieces.push(new DndRook({ x: 7, y: 7 }, 'black'));
+    for (let i = 0; i < 8; i++) {
+      pieces.push(new DndPawn({ x: i, y: 6 }, 'black'));
+    }
+  } else {
+    pieces.push(new Rook({ x: 0, y: 0 }, 'white'));
+    pieces.push(new Knight({ x: 1, y: 0 }, 'white'));
+    pieces.push(new Bishop({ x: 2, y: 0 }, 'white'));
+    pieces.push(new Queen({ x: 3, y: 0 }, 'white'));
+    pieces.push(new King({ x: 4, y: 0 }, 'white'));
+    pieces.push(new Bishop({ x: 5, y: 0 }, 'white'));
+    pieces.push(new Knight({ x: 6, y: 0 }, 'white'));
+    pieces.push(new Rook({ x: 7, y: 0 }, 'white'));
+    for (let i = 0; i < 8; i++) {
+      pieces.push(new Pawn({ x: i, y: 1 }, 'white'));
+    }
+
+    // Black pieces
+    pieces.push(new Rook({ x: 0, y: 7 }, 'black'));
+    pieces.push(new Knight({ x: 1, y: 7 }, 'black'));
+    pieces.push(new Bishop({ x: 2, y: 7 }, 'black'));
+    pieces.push(new Queen({ x: 3, y: 7 }, 'black'));
+    pieces.push(new King({ x: 4, y: 7 }, 'black'));
+    pieces.push(new Bishop({ x: 5, y: 7 }, 'black'));
+    pieces.push(new Knight({ x: 6, y: 7 }, 'black'));
+    pieces.push(new Rook({ x: 7, y: 7 }, 'black'));
+    for (let i = 0; i < 8; i++) {
+      pieces.push(new Pawn({ x: i, y: 6 }, 'black'));
+    }
+  }
+
+  return {
+    id: '',
+    currentPlayer: 'white',
+    pieces,
+    isCheck: false,
+    isCheckmate: false,
+    isStalemate: false,
+    gameType,
+    turnNumber: 1
+  };
+}
+
+--- Файл: D:\DnDchess\src\app\models\position.model.ts ---
+
+export interface Position {
+    x: number; // 0-7 (a-h)
+    y: number; // 0-7 (1-8)
+  }
+
+--- Файл: D:\DnDchess\src\app\services\firebase.service.ts ---
+
+import { Injectable, inject, NgZone } from '@angular/core';
+import { GameState } from '../models/game-state.model';
+import { Database, ref, set, push, onValue, update, off } from '@angular/fire/database';
+import { Observable } from 'rxjs';
+
+@Injectable({ providedIn: 'root' })
+export class FirebaseService {
+  private db = inject(Database);
+  private zone = inject(NgZone);
+  private activeListeners: {[gameId: string]: () => void} = {};
+
+  async createGame(state: GameState): Promise<void> {
+    if (!state.id) {
+        throw new Error('Game state must have an ID');
+    }
+    
+    const gameRef = ref(this.db, `games/${state.id}`);
+    await set(gameRef, state);
+  }
+
+  getGameState(gameId: string): Observable<GameState> {
+    return new Observable(subscriber => {
+      this.zone.runOutsideAngular(() => {
+        const gameRef = ref(this.db, `games/${gameId}`);
+        
+        if (this.activeListeners[gameId]) {
+          this.activeListeners[gameId]();
+        }
+
+        const unsubscribe = onValue(gameRef, (snapshot) => {
+          this.zone.run(() => {
+            const data = snapshot.val();
+            if (data) {
+              subscriber.next(data);
+            }
+          });
+        });
+
+        this.activeListeners[gameId] = unsubscribe;
+
+        return () => {
+          this.zone.run(() => {
+            if (this.activeListeners[gameId]) {
+              this.activeListeners[gameId]();
+              delete this.activeListeners[gameId];
+            }
+          });
+        };
+      });
+    });
+  }
+
+  async updateGame(state: GameState): Promise<void> {
+    return this.zone.runOutsideAngular(async () => {
+      const gameRef = ref(this.db, `games/${state.id}`);
+      await update(gameRef, state);
+    });
+  }
+
+  cleanup(gameId: string): void {
+    this.zone.run(() => {
+      if (this.activeListeners[gameId]) {
+        this.activeListeners[gameId]();
+        delete this.activeListeners[gameId];
+      }
+    });
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\services\game.service.ts ---
+
+import { Injectable } from '@angular/core';
+import { GameState, createInitialGameState } from '../models/game-state.model';
+import { ChessPiece, PieceType, PieceColor } from '../models/chess-piece.model';
+import { Position } from '../models/position.model';
+import { Pawn, Rook, Knight, Bishop, Queen, King } from '../models/chess-piece.model';
+import { DndBishop, DndKing, DndKnight, DndPawn, DndQueen, DndRook } from '../models/dnd-chess-piece.model';
+
+@Injectable({ providedIn: 'root' })
+export class GameService {
+  private state: GameState = createInitialGameState();
+
+  getState(): GameState {
+    return this.state;
+  }
+
+  setState(state: GameState): void {
+    if (state.pieces) {
+      state.pieces = state.pieces.map(piece => this.createPieceInstance(piece));
+    }
+    this.state = state;
+  }
+
+  createPieceInstance(pieceData: any): ChessPiece {
+    const position = { x: pieceData.position.x, y: pieceData.position.y };
+    const color = pieceData.color as PieceColor;
+    const hasMoved = pieceData.hasMoved || false;
+    const gameType = pieceData.gameType || 'classic';
+
+    if (gameType === 'dnd') {
+        switch (pieceData.type as PieceType) {
+            case 'pawn': return new DndPawn(position, color, hasMoved);
+            case 'rook': return new DndRook(position, color, hasMoved);
+            case 'knight': return new DndKnight(position, color, hasMoved);
+            case 'bishop': return new DndBishop(position, color, hasMoved);
+            case 'queen': return new DndQueen(position, color, hasMoved);
+            case 'king': return new DndKing(position, color, hasMoved);
+            default: throw new Error(`Unknown piece type: ${pieceData.type}`);
+        }
+    } else {
+        switch (pieceData.type as PieceType) {
+            case 'pawn': return new Pawn(position, color, hasMoved);
+            case 'rook': return new Rook(position, color, hasMoved);
+            case 'knight': return new Knight(position, color, hasMoved);
+            case 'bishop': return new Bishop(position, color, hasMoved);
+            case 'queen': return new Queen(position, color, hasMoved);
+            case 'king': return new King(position, color, hasMoved);
+            default: throw new Error(`Unknown piece type: ${pieceData.type}`);
+        }
+    }
+  }
+  getPiece(position: Position): ChessPiece | null {
+    return this.state.pieces.find(
+      p => p.position.x === position.x && p.position.y === position.y
+    ) || null;
+  }
+}
+
+--- Файл: D:\DnDchess\src\app\services\multiplayer.service.ts ---
+
+import { Injectable, OnDestroy } from '@angular/core';
+import { FirebaseService } from './firebase.service';
+import { GameService } from './game.service';
+import { createInitialGameState, GameState } from '../models/game-state.model';
+import { Position } from '../models/chess-piece.model';
+import { Subscription } from 'rxjs';
+
+@Injectable({ providedIn: 'root' })
+export class MultiplayerService implements OnDestroy {
+  private currentGameId: string | null = null;
+  private gameSubscription: Subscription | null = null;
+
+  constructor(
+    private firebase: FirebaseService,
+    private gameService: GameService
+  ) {}
+
+  async createGame(gameType: 'classic' | '5d' | 'dnd' = 'classic'): Promise<string> {
+    const initialState = createInitialGameState(gameType);
+    initialState.id = `${gameType}-${Math.random().toString(36).substr(2, 8)}`; // Генерируем ID с префиксом типа
+    
+    try {
+        await this.firebase.createGame(initialState);
+        return initialState.id;
+    } catch (error) {
+        console.error('Error creating game:', error);
+        throw error;
+    }
+  }
+  
+  joinGame(gameId: string): void {
+    if (this.currentGameId) {
+      this.firebase.cleanup(this.currentGameId);
+    }
+    
+    this.currentGameId = gameId;
+    this.gameSubscription = this.firebase.getGameState(gameId).subscribe({
+      next: (state: GameState) => {
+        this.gameService.setState(state);
+      },
+      error: (err) => {
+        console.error('Game state error:', err);
+      }
+    });
+  }
+
+  async makeMove(from: Position, to: Position, isPassive: boolean = false): Promise<boolean> {
+    if (!this.currentGameId) return false;
+    
+    const currentState = this.gameService.getState();
+    const piece = currentState.pieces.find(p => 
+      p.position.x === from.x && p.position.y === from.y
+    );
+    
+    if (!piece || piece.color !== currentState.currentPlayer) {
+      return false;
+    }
+
+    // Validate move
+    if (!isPassive && !piece.canMove(to, currentState)) {
+      return false;
+    }
+
+    // Check for capture
+    const targetPiece = currentState.pieces.find(p => 
+      p.position.x === to.x && p.position.y === to.y && 
+      (p.position.x !== from.x || p.position.y !== from.y)
+    );
+
+    // Create new state
+    const newPieces = currentState.pieces
+      .filter(p => !targetPiece || p !== targetPiece)
+      .map(p => {
+        if (p.position.x === from.x && p.position.y === from.y) {
+          const newPiece = this.gameService.createPieceInstance(p);
+          newPiece.move(to);
+          if (isPassive) {
+            newPiece.usePassive();
+          }
+          return newPiece;
+        }
+        return p;
+      });
+
+    const newState: GameState = {
+      ...currentState,
+      pieces: newPieces,
+      currentPlayer: currentState.currentPlayer === 'white' ? 'black' : 'white',
+      turnNumber: currentState.turnNumber + (currentState.currentPlayer === 'black' ? 1 : 0)
+    };
+
+    // Reset ability charges for new turn
+    if (newState.currentPlayer === 'white') {
+      newState.pieces.forEach(p => {
+        if (p.color === 'white') {
+          p.abilityCharges = 3;
+        }
+      });
+    }
+
+    await this.firebase.updateGame(newState);
+    return true;
+  }
+
+  async useAbility(from: Position, target: Position): Promise<boolean> {
+    if (!this.currentGameId) return false;
+    
+    const currentState = this.gameService.getState();
+    const piece = currentState.pieces.find(p => 
+      p.position.x === from.x && p.position.y === from.y
+    );
+    
+    if (!piece || piece.color !== currentState.currentPlayer || piece.abilityCharges <= 0) {
+      return false;
+    }
+
+    const targetPiece = currentState.pieces.find(p => 
+      p.position.x === target.x && p.position.y === target.y
+    );
+
+    if (!targetPiece) return false;
+
+    // Create new state with damage applied
+    const newPieces = currentState.pieces.map(p => {
+      const newPiece = this.gameService.createPieceInstance(p);
+      
+      if (p === piece) {
+        newPiece.useAbility();
+      }
+      
+      if (p === targetPiece) {
+        newPiece.takeDamage((piece as any).abilityDamage || 20);
+      }
+      
+      return newPiece;
+    }).filter(p => p.health > 0);
+
+    const newState: GameState = {
+      ...currentState,
+      pieces: newPieces
+    };
+
+    await this.firebase.updateGame(newState);
+    return true;
+  }
+
+  ngOnDestroy(): void {
+    if (this.currentGameId) {
+      this.firebase.cleanup(this.currentGameId);
+    }
+    if (this.gameSubscription) {
+      this.gameSubscription.unsubscribe();
+    }
+  }
+}
+

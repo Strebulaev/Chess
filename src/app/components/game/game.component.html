@@ -1,0 +1,9 @@
+<div class="chessboard-container" [class.classic-mode]="chessType === 'classic'"
+                                [class.dnd-mode]="chessType === 'dnd'"
+                                [class.five-d-mode]="chessType === '5d'">
+  <div class="game-info">
+    Ход: {{ gameService.getState().currentPlayer === 'white' ? 'Белые' : 'Чёрные' }}
+  </div>
+  <app-chessboard [state]="gameService.getState()"></app-chessboard>
+  <div class="game-id">Игра: {{ gameId }}</div>
+</div>

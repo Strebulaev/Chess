@@ -1,0 +1,214 @@
+/* Глобальные переменные */
+:root {
+  --primary: #3a529c;
+  --primary-light: #4a6bda;
+  --text: #2d3748;
+  --text-light: #718096;
+  --bg: #f8fafc;
+  --menu-bg: rgba(255, 255, 255, 0.96);
+  --border: rgba(0, 0, 0, 0.08);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Базовые стили */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Шапка - стеклянный эффект */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--menu-bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  height: 90px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+
+  .header-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Заголовок */
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+  padding: 0 24px 0 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: linear-gradient(to bottom, 
+      transparent 0%, 
+      var(--border) 20%, 
+      var(--border) 80%, 
+      transparent 100%);
+  }
+
+  span {
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Меню иконок */
+.chess-menu {
+  display: flex;
+  justify-content: center; // Добавлено центрирование по горизонтали
+  align-items: center;    // Добавлено центрирование по вертикали
+  gap: 8px;
+  height: 100%;
+  width: 100%;           // Добавлено для правильного центрирования
+  margin: 0 auto;        // Добавлено для дополнительного центрирования
+  padding: 0 20px;
+
+  .menu-item {
+    text-decoration: none;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--text-light);
+    transition: var(--transition);
+    position: relative;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(74, 107, 218, 0.08);
+      color: var(--primary);
+      transform: translateY(-2px);
+
+      .menu-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
+
+    &.active {
+      background: rgba(74, 107, 218, 0.12);
+      color: var(--primary);
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      transition: var(--transition);
+    }
+
+    .menu-tooltip {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      min-width: 220px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: var(--transition);
+      z-index: 10;
+      text-align: left;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--border);
+
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        right: 20px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: transparent transparent rgba(255, 255, 255, 0.88) transparent;
+        filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.05));
+      }
+
+      .tooltip-title {
+        display: block;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 4px;
+        font-size: 15px;
+      }
+
+      .tooltip-description {
+        display: block;
+        font-size: 14px;
+        color: var(--text-light);
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+/* Основное содержимое */
+.main-content {
+  flex: 1;
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .app-header {
+    height: 64px;
+    padding: 0 16px;
+
+    .header-title {
+      font-size: 1.25rem;
+      padding-right: 16px;
+    }
+  }
+
+  .chess-menu .menu-item {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .main-content {
+    padding: 24px 16px;
+  }
+}

@@ -1,0 +1,31 @@
+<div class="lobby-container">
+  <div class="mode-indicator" *ngIf="currentMode">
+    <div class="mode-icon">{{currentMode.icon}}</div>
+    <div class="mode-title">{{currentMode.title}}</div>
+  </div>
+
+  <h2>Create or Join Game</h2>
+  
+  <div class="game-options">
+    <div class="option-card">
+      <h3>Create New Game</h3>
+      <button (click)="createGame()" [disabled]="isLoading">
+        {{ isLoading ? 'Creating...' : 'Create' }}
+      </button>
+    </div>
+
+    <div class="option-card">
+      <h3>Join Existing Game</h3>
+      <div class="input-group">
+        <input [(ngModel)]="gameId" placeholder="Game ID">
+        <button (click)="joinGame()" [disabled]="isLoading || !gameId">
+          {{ isLoading ? 'Joining...' : 'Join' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+</div>

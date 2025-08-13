@@ -5,5 +5,8 @@
     Ход: {{ gameService.getState().currentPlayer === 'white' ? 'Белые' : 'Чёрные' }}
   </div>
   <app-chessboard [state]="gameService.getState()"></app-chessboard>
-  <div class="game-id">Игра: {{ gameId }}</div>
+  <div class="game-id">ID: {{ gameId }}</div>
+  <div class="chat-panel-container">
+    <app-chat [gameId]="gameId"></app-chat>
+  </div>
 </div>

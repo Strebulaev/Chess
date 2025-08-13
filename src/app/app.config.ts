@@ -6,6 +6,7 @@ import { routes } from './app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideZoneChangeDetection } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBj1T7DGrGLTfapIWb2wXKdPC9FbbOeluo",
@@ -25,5 +26,6 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideDatabase(() => getDatabase()),
+    DatePipe
   ],
 };

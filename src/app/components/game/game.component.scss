@@ -18,3 +18,50 @@
     color: #555;
   }
 }
+.game-screen {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .main-content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .side-panel-container {
+    width: 280px;
+    padding: 20px;
+  }
+  
+  .chat-panel-container {
+    width: 300px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  @media (max-width: 1200px) {
+    .side-panel-container,
+    .chat-panel-container {
+      width: 250px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .game-screen {
+      flex-direction: column;
+    }
+    
+    .side-panel-container,
+    .chat-panel-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .chat-panel-container {
+      border-left: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }

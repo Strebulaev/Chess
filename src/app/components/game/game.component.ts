@@ -5,11 +5,12 @@ import { MultiplayerService } from '../../services/multiplayer.service';
 import { ChessboardComponent } from '../chessboard/chessboard.component';
 import { CommonModule } from '@angular/common';
 import { createInitialGameState } from '../../models/game-state.model';
+import { ChatComponent } from "../chat/chat.component";
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [ChessboardComponent, CommonModule],
+  imports: [ChessboardComponent, CommonModule, ChatComponent],
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.scss']
 })
@@ -44,7 +45,7 @@ export class GameComponent implements OnInit, OnDestroy {
         this.multiplayer.joinGame(this.gameId);
     }
   }
-  
+
   ngOnDestroy(): void {
     this.multiplayer.ngOnDestroy();
   }

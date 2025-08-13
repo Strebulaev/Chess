@@ -2,16 +2,18 @@ import { Bishop, ChessPiece, King, Knight, Pawn, Queen, Rook } from './chess-pie
 import { DndBishop, DndChessPiece, DndKing, DndKnight, DndPawn, DndQueen, DndRook } from './dnd-chess-piece.model';
 
 export interface GameState {
-  currentPlayer: 'white' | 'black';
-  pieces: (ChessPiece | DndChessPiece)[];
-  isCheck: boolean;
-  isCheckmate: boolean;
-  isStalemate: boolean;
-  id: string;
-  gameType: 'classic' | '5d' | 'dnd';
-  turnNumber: number;
-}
-
+    id: string;
+    currentPlayer: 'white' | 'black';
+    pieces: ChessPiece[];
+    gameType: 'classic' | '5d' | 'dnd';
+    whiteDeviceId?: string;  // ID устройства белого игрока
+    blackDeviceId?: string;  // ID устройства черного игрока
+    currentUserColor?: 'white' | 'black' | null;
+    turnNumber: number;
+    isCheck?: boolean;
+    isCheckmate?: boolean;
+    isStalemate?: boolean;
+  }
 export function createInitialGameState(gameType: 'classic' | '5d' | 'dnd' = 'classic'): GameState {
   const pieces: (ChessPiece | DndChessPiece)[] = [];
 

@@ -26,124 +26,32 @@ bootstrapApplication(AppComponent, appConfig)
 
 --- Файл: D:\DnDchess\src\styles.scss ---
 
-/* styles.scss или в соответствующих файлах компонентов */
+/* Общие стили для всех режимов */
 :root {
   --primary: #3a529c;
   --primary-light: #4a6bda;
   --text: #2d3748;
   --text-light: #718096;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* Глобальные стили */
+
+/* Базовые стили */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #121212;
+  color: white;
   margin: 0;
-  padding: 0;
-  background-color: #282828;
-  color: #333;
+  line-height: 1.5;
 }
 
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* Меню */
-.chess-menu {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-  background: linear-gradient(135deg, #6e8efb, #a777e3);
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  button {
-    background: none;
-    border: none;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    margin: 0 0.5rem;
-    font-size: 1.1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    &.active {
-      background: rgb(58, 58, 58);
-      color: #6e8efb;
-      font-weight: bold;
-    }
-  }
-}
-
-/* Лобби */
-.lobby {
-  background: rgb(9, 9, 9);
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  margin: 0 auto;
-  text-align: center;
-
-  h2 {
-    margin-top: 0;
-    color: #444;
-  }
-
-  button {
-    background: linear-gradient(135deg, #6e8efb, #a777e3);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    margin: 0.5rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    &:disabled {
-      background: #363636;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-  }
-
-  input {
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-right: 0.5rem;
-    width: 200px;
-    font-size: 1rem;
-  }
-
-  .error-message {
-    color: #e74c3c;
-    margin-top: 1rem;
-  }
-}
-
-/* Шахматная доска */
+/* Шахматная доска - общие стили */
 .chessboard {
-  display: inline-block;
-  border: 15px solid #8B4513; /* деревянная рамка */
-  border-radius: 5px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  margin-top: 1rem;
-  background: #232323; /* цвет дерева для доски */
-
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin: 0 auto;
+  
   .row {
     display: flex;
   }
@@ -156,100 +64,248 @@ body {
     align-items: center;
     position: relative;
     cursor: pointer;
-
-    &:nth-child(odd) {
-      background: #b58863;
-    }
-
-    &:nth-child(even) {
-      background: #f0d9b5;
-    }
-
-    &.selected {
-      background: rgba(52, 152, 219, 0.7) !important;
-    }
+    transition: var(--transition);
 
     span {
       font-size: 40px;
       user-select: none;
       pointer-events: none;
       z-index: 2;
+      transition: var(--transition);
+    }
 
-      &.white {
-        color: #fff;
-        text-shadow: 1px 1px 2px #000;
-      }
-
-      &.black {
-        color: #000;
-        text-shadow: 1px 1px 2px #fff;
+    &.selected {
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        box-shadow: 0 0 15px currentColor;
+        z-index: -1;
       }
     }
 
-    &::after {
-      content: '';
+    .move-dot {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(46, 204, 113, 0.3);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    &:hover::after {
-      opacity: 1;
-    }
-  }
-
-  .row:nth-child(odd) .cell {
-    &:nth-child(odd) {
-      background: #f0d9b5;
-    }
-
-    &:nth-child(even) {
-      background: #b58863;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      z-index: 1;
     }
   }
 }
 
-/* Игровая страница */
-.game {
-  text-align: center;
-  background: rgb(43, 43, 43);
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
+/* Классический режим */
+.chessboard.classic-mode {
+  border: 12px solid #5D4037;
+  background: #5D4037;
+
+  .cell {
+    &:nth-child(odd) { background: #f0d9b5; }
+    &:nth-child(even) { background: #b58863; }
+    
+    &.selected::after { background: rgba(52, 152, 219, 0.5); }
+    
+    .move-dot {
+      background: rgba(46, 204, 113, 0.8);
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+    }
+  }
+
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) { background: #b58863; }
+    &:nth-child(even) { background: #f0d9b5; }
+  }
+
+  span.white {
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  span.black {
+    color: #222;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+  }
+}
+
+/* D&D режим */
+.chessboard.dnd-mode {
+  border: 12px solid #6C3483;
+  background: #2C3E50;
+
+  .cell {
+    background: rgba(44, 62, 80, 0.7) !important;
+    border: 1px solid rgba(255,255,255,0.05);
+    
+    &:nth-child(even) { background: rgba(108, 52, 131, 0.5) !important; }
+    
+    &.selected::after { 
+      background: rgba(155, 89, 182, 0.5);
+      box-shadow: 0 0 15px rgba(155, 89, 182, 0.7);
+    }
+    
+    .move-dot {
+      background: rgba(241, 196, 15, 0.8);
+      box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+    }
+  }
+
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) { background: rgba(108, 52, 131, 0.5) !important; }
+    &:nth-child(even) { background: rgba(44, 62, 80, 0.7) !important; }
+  }
+
+  span.white {
+    color: #f1c40f;
+    text-shadow: 0 0 10px #f1c40f;
+    animation: whitePulse 3s infinite alternate;
+  }
+
+  span.black {
+    color: #e74c3c;
+    text-shadow: 0 0 10px #c0392b;
+    animation: blackPulse 3s infinite alternate;
+  }
+}
+
+/* 5D режим */
+.chessboard.five-d-mode {
+  border: 12px solid #3498DB;
+  background: #0F2027;
+
+  .cell {
+    background: rgba(25, 42, 86, 0.7) !important;
+    border: 1px solid rgba(255,255,255,0.1);
+    
+    &:nth-child(even) { background: rgba(52, 152, 219, 0.5) !important; }
+    
+    &.selected::after { 
+      background: rgba(52, 152, 219, 0.5);
+      box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
+    }
+    
+    .move-dot {
+      background: rgba(46, 204, 113, 0.8);
+      box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
+    }
+  }
+
+  .row:nth-child(odd) .cell {
+    &:nth-child(odd) { background: rgba(52, 152, 219, 0.5) !important; }
+    &:nth-child(even) { background: rgba(25, 42, 86, 0.7) !important; }
+  }
+
+  span.white {
+    color: #2ecc71;
+    text-shadow: 0 0 10px #2ecc71;
+    animation: whiteGlow 3s infinite alternate;
+  }
+
+  span.black {
+    color: #9b59b6;
+    text-shadow: 0 0 10px #8e44ad;
+    animation: blackGlow 3s infinite alternate;
+  }
+}
+
+/* Анимации */
+@keyframes whitePulse {
+  0% { filter: drop-shadow(0 0 5px #f1c40f); }
+  100% { filter: drop-shadow(0 0 15px #f39c12); }
+}
+
+@keyframes blackPulse {
+  0% { filter: drop-shadow(0 0 5px #e74c3c); }
+  100% { filter: drop-shadow(0 0 15px #c0392b); }
+}
+
+@keyframes whiteGlow {
+  0% { filter: drop-shadow(0 0 5px #2ecc71); }
+  100% { filter: drop-shadow(0 0 15px #27ae60); }
+}
+
+@keyframes blackGlow {
+  0% { filter: drop-shadow(0 0 5px #9b59b6); }
+  100% { filter: drop-shadow(0 0 15px #8e44ad); }
+}
+
+/* Меню */
+.chess-menu {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+
+  .menu-item {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-light);
+    transition: var(--transition);
+    position: relative;
+    cursor: pointer;
+    font-size: 24px;
+
+    &:hover {
+      background: rgba(74, 107, 218, 0.1);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background: rgba(74, 107, 218, 0.2);
+      color: var(--primary);
+    }
+  }
+}
+
+/* Лобби */
+.lobby-container {
+  max-width: 500px;
   margin: 0 auto;
+  background: rgba(30, 30, 30, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  text-align: center;
 
-  h1 {
-    margin-top: 0;
-    color: #444;
+  h2 {
+    color: white;
+    margin-bottom: 2rem;
   }
 
-  p {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: #666;
-  }
-
-  .leave-btn {
-    background: #e74c3c;
+  button {
+    background: var(--primary);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
-    margin-top: 1rem;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: var(--transition);
     font-size: 1rem;
-    transition: all 0.3s ease;
+    margin-top: 1rem;
 
     &:hover {
-      background: #c0392b;
+      background: var(--primary-light);
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
   }
 }
@@ -259,10 +315,14 @@ body {
   .chessboard .cell {
     width: 40px;
     height: 40px;
-
+    
     span {
       font-size: 30px;
     }
+  }
+  
+  .lobby-container {
+    padding: 1.5rem;
   }
 }
 
@@ -622,83 +682,83 @@ export const routes: Routes = [
 
 --- Файл: D:\DnDchess\src\app\components\chessboard\chessboard.component.html ---
 
-<div class="chessboard-wrapper">
-    <div class="game-type-header">
-      <h2>{{ getGameTypeDisplayName() }}</h2>
-    </div>
-    <div class="chessboard-container">
-      <div class="chessboard" [class.dnd-mode]="gameType === 'dnd'"
-           [class.classic-mode]="gameType === 'classic'"
-           [class.five-d-mode]="gameType === '5d'">
-           <div *ngIf="gameType === 'dnd'" class="dnd-decorations">
-            <div class="web web-top-left"></div>
-            <div class="chandelier chandelier-left"></div>
-            <div class="chandelier chandelier-right"></div>
-            <div class="pumpkin"></div>
-            <div class="point-light point-light-left"></div>
-            <div class="point-light point-light-right"></div>
-          </div>        
-        
-        <div *ngFor="let row of [0,1,2,3,4,5,6,7]; let y = index" class="row">
-          <div
-            *ngFor="let col of [0,1,2,3,4,5,6,7]; let x = index"
-            class="cell"
-            [class.selected]="selectedPiece?.x === x && selectedPiece?.y === y"
-            [class.possible-move]="isPossibleMove({x, y})"
-            (click)="handleCellClick({x, y})"
-          >
-            <span *ngIf="getPieceAt({x, y}) as piece" 
-                  [class.white]="piece.color === 'white'"
-                  [class.black]="piece.color === 'black'"
-                  [class.low-health]="gameType === 'dnd' && piece.health <= 30">
-              {{ getPieceSymbol(piece.type) }}
-            </span>
-            
-            <div *ngIf="isPossibleMove({x, y})" class="move-dot"></div>
+<div class="game-screen">
+    <!-- Основной контейнер с центрированной доской -->
+    <div class="main-content">
+      <div class="chessboard-wrapper">
+        <div class="game-type-header">
+          <h2>{{ getGameTypeDisplayName() }}</h2>
+        </div>
+        <div class="chessboard-container">
+          <div class="chessboard" [class.dnd-mode]="gameType === 'dnd'"
+               [class.classic-mode]="gameType === 'classic'"
+               [class.five-d-mode]="gameType === '5d'">
+             <div *ngIf="gameType === 'dnd'" class="dnd-decorations">
+              <div class="web web-top-left"></div>
+              <div class="chandelier chandelier-left"></div>
+              <div class="chandelier chandelier-right"></div>
+              <div class="pumpkin"></div>
+              <div class="point-light point-light-left"></div>
+              <div class="point-light point-light-right"></div>
+            </div>        
+          
+          <div *ngFor="let row of [0,1,2,3,4,5,6,7]; let y = index" class="row">
+            <div
+              *ngFor="let col of [0,1,2,3,4,5,6,7]; let x = index"
+              class="cell"
+              [class.selected]="selectedPiece?.x === x && selectedPiece?.y === y"
+              [class.possible-move]="isPossibleMove({x, y})"
+              (click)="handleCellClick({x, y})"
+            >
+              <span *ngIf="getPieceAt({x, y}) as piece" 
+                    [class.white]="piece.color === 'white'"
+                    [class.black]="piece.color === 'black'"
+                    [class.low-health]="gameType === 'dnd' && piece.health <= 30">
+                {{ getPieceSymbol(piece.type) }}
+              </span>
+              
+              <div *ngIf="isPossibleMove({x, y})" class="move-dot"></div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
   
-      <div class="side-panel" *ngIf="selectedPieceInfo"
-           [class.dnd-mode]="gameType === 'dnd'"
-           [class.classic-mode]="gameType === 'classic'"
-           [class.five-d-mode]="gameType === '5d'">
-        <div class="panel-header">
-          <h3>{{ getGameTypeDisplayName() }}</h3>
-          <span class="piece-icon">{{ getPieceSymbol(selectedPieceInfo.type) }}</span>
-          <h3>{{ selectedPieceInfo.type | titlecase }}</h3>
+    <div class="side-panel-container">
+        <div class="side-panel" *ngIf="selectedPieceInfo"
+             [class.dnd-mode]="gameType === 'dnd'"
+             [class.classic-mode]="gameType === 'classic'"
+             [class.five-d-mode]="gameType === '5d'">
+      <div class="panel-header">
+        <h3>{{ getGameTypeDisplayName() }}</h3>
+        <span class="piece-icon">{{ getPieceSymbol(selectedPieceInfo.type) }}</span>
+        <h3>{{ selectedPieceInfo.type | titlecase }}</h3>
+      </div>
+      
+      <!-- D&D специфичная информация -->
+      <div *ngIf="gameType === 'dnd'" class="health-section">
+        <div class="health-bar">
+          <div class="health-fill" [style.width.%]="(selectedPieceInfo.health / selectedPieceInfo.maxHealth) * 100"></div>
+          <span class="health-text">{{ selectedPieceInfo.health }}/{{ selectedPieceInfo.maxHealth }} HP</span>
         </div>
-        
-        <!-- D&D специфичная информация -->
-        <div *ngIf="gameType === 'dnd'" class="health-section">
-          <div class="health-bar">
-            <div class="health-fill" [style.width.%]="(selectedPieceInfo.health / selectedPieceInfo.maxHealth) * 100"></div>
-            <span class="health-text">{{ selectedPieceInfo.health }}/{{ selectedPieceInfo.maxHealth }} HP</span>
-          </div>
-        </div>
+      </div>
   
-        <div *ngIf="gameType === 'dnd'" class="move-options">
-          <div class="option-buttons">
-            <button class="move-option" 
-                    [class.active]="selectedMoveType === 'normal'"
-                    (click)="selectMoveType('normal')">
-              <span class="option-icon">♟</span>
-              <span class="option-label">Normal Move</span>
-            </button>
-            
-            <button class="move-option ability-option"
-                    [class.active]="selectedMoveType === 'ability'"
-                    [class.disabled]="selectedPieceInfo.abilityCharges <= 0"
-                    (click)="selectMoveType('ability')">
-              <span class="option-icon">⚔️</span>
-              <span class="option-label">Attack ({{selectedPieceInfo.abilityCharges}}/3)</span>
-            </button>
-          </div>
-        </div>
-  
-        <!-- Для классических шахмат и 5D -->
-        <div *ngIf="gameType !== 'dnd'" class="game-info">
-          <p>{{ gameType === '5d' ? '5D Chess with Multiverse Time Travel' : 'Standard chess rules apply' }}</p>
+      <div *ngIf="gameType === 'dnd'" class="move-options">
+        <div class="option-buttons">
+          <button class="move-option" 
+                  [class.active]="selectedMoveType === 'normal'"
+                  (click)="selectMoveType('normal')">
+            <span class="option-icon">♟</span>
+            <span class="option-label">Normal Move</span>
+          </button>
+          
+          <button class="move-option ability-option"
+                  [class.active]="selectedMoveType === 'ability'"
+                  [class.disabled]="selectedPieceInfo.abilityCharges <= 0"
+                  (click)="selectMoveType('ability')">
+            <span class="option-icon">⚔️</span>
+            <span class="option-label">Attack ({{selectedPieceInfo.abilityCharges}}/3)</span>
+          </button>
         </div>
       </div>
     </div>
@@ -706,735 +766,488 @@ export const routes: Routes = [
 
 --- Файл: D:\DnDchess\src\app\components\chessboard\chessboard.component.scss ---
 
-// Добавь это в chessboard.component.scss
-
-/* Общие стили для всех режимов */
-.chessboard {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 20px 30px rgba(0,0,0,0.3);
-  transition: all 0.5s ease;
-  
-  .cell {
-    transition: all 0.3s ease;
+/* Общие стили для контейнера шахматной доски */
+.chessboard-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
     position: relative;
-    z-index: 1;
+  }
+  
+  /* Стили для боковой панели информации о фигуре */
+  .side-panel {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 280px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease-out;
+    max-height: 80vh;
+    overflow-y: auto;
     
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.05);
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    &:hover::before {
-      opacity: 1;
-    }
-    
-    &.selected {
-      &::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(52, 152, 219, 0.5);
-        box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
-        z-index: -1;
-      }
-    }
-    
-    .move-dot {
-      box-shadow: 0 0 10px 2px rgba(46, 204, 113, 0.8);
-      background: radial-gradient(circle, rgba(46, 204, 113, 1) 30%, transparent 70%);
-    }
-  }
-}
-
-/* Классические шахматы - элегантный деревянный стиль */
-.chessboard.classic-mode {
-  border: 15px solid #5D4037;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(93, 64, 55, 0.3) 0%, rgba(93, 64, 55, 0.1) 100%);
-    z-index: 0;
-  }
-  
-  .cell {
-    &:nth-child(odd) {
-      background: rgba(210, 180, 140, 0.9);
-    }
-    
-    &:nth-child(even) {
-      background: rgba(139, 69, 19, 0.9);
-    }
-  }
-  
-  .row:nth-child(odd) .cell {
-    &:nth-child(odd) {
-      background: rgba(139, 69, 19, 0.9);
-    }
-    
-    &:nth-child(even) {
-      background: rgba(210, 180, 140, 0.9);
-    }
-  }
-  
-  span.white {
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-  }
-  
-  span.black {
-    filter: drop-shadow(0 2px 4px rgba(255,255,255,0.3));
-  }
-}
-
-/* D&D режим - мрачное подземелье с магическими эффектами */
-.chessboard.dnd-mode {
-  border: 15px solid #8E44AD;
-  box-shadow: 0 0 30px rgba(142, 68, 173, 0.5);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(142, 68, 173, 0.2) 0%, rgba(41, 128, 185, 0.1) 100%);
-    z-index: 0;
-  }
-  
-  .cell {
-    background: rgba(44, 62, 80, 0.7) !important;
-    border: 1px solid rgba(255,255,255,0.05);
-    
-    &:nth-child(odd) {
-      background: rgba(44, 62, 80, 0.5) !important;
-    }
-    
-    &:nth-child(even) {
-      background: rgba(142, 68, 173, 0.3) !important;
-    }
-    
-    &.selected {
-      background: rgba(155, 89, 182, 0.7) !important;
-      
-      &::after {
-        background: rgba(155, 89, 182, 0.5);
-        box-shadow: 0 0 15px rgba(155, 89, 182, 0.7);
-      }
-    }
-  }
-  
-  .row:nth-child(odd) .cell {
-    &:nth-child(odd) {
-      background: rgba(142, 68, 173, 0.3) !important;
-    }
-    
-    &:nth-child(even) {
-      background: rgba(44, 62, 80, 0.5) !important;
-    }
-  }
-  
-  span.white {
-    color: #f1c40f !important;
-    text-shadow: 0 0 10px #f1c40f, 0 0 20px #f39c12;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-  }
-  
-  span.black {
-    color: #e74c3c !important;
-    text-shadow: 0 0 10px #c0392b, 0 0 20px #e74c3c;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-  }
-  
-  .move-dot {
-    box-shadow: 0 0 15px 3px rgba(241, 196, 15, 0.8);
-    background: radial-gradient(circle, rgba(241, 196, 15, 1) 30%, transparent 70%);
-  }
-  
-  // Магические свечения по краям доски
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border: 2px solid transparent;
-    border-image: linear-gradient(45deg, #8e44ad, #3498db, #8e44ad);
-    border-image-slice: 1;
-    pointer-events: none;
-    z-index: 5;
-    animation: borderGlow 3s infinite linear;
-  }
-  
-  @keyframes borderGlow {
-    0% { opacity: 0.3; }
-    50% { opacity: 0.8; }
-    100% { opacity: 0.3; }
-  }
-}
-
-/* 5D Chess - футуристический космический стиль */
-.chessboard.five-d-mode {
-  border: 15px solid #3498DB;
-  box-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.2) 0%, rgba(41, 128, 185, 0.1) 100%);
-    z-index: 0;
-  }
-  
-  .cell {
-    background: rgba(25, 42, 86, 0.7) !important;
-    border: 1px solid rgba(255,255,255,0.1);
-    
-    &:nth-child(odd) {
-      background: rgba(25, 42, 86, 0.5) !important;
-    }
-    
-    &:nth-child(even) {
-      background: rgba(52, 152, 219, 0.3) !important;
-    }
-    
-    &.selected {
-      background: rgba(52, 152, 219, 0.7) !important;
-      
-      &::after {
-        background: rgba(52, 152, 219, 0.5);
-        box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
-      }
-    }
-  }
-  
-  .row:nth-child(odd) .cell {
-    &:nth-child(odd) {
-      background: rgba(52, 152, 219, 0.3) !important;
-    }
-    
-    &:nth-child(even) {
-      background: rgba(25, 42, 86, 0.5) !important;
-    }
-  }
-  
-  span.white {
-    color: #2ecc71 !important;
-    text-shadow: 0 0 10px #2ecc71, 0 0 20px #27ae60;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-  }
-  
-  span.black {
-    color: #9b59b6 !important;
-    text-shadow: 0 0 10px #8e44ad, 0 0 20px #9b59b6;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-  }
-  
-  .move-dot {
-    box-shadow: 0 0 15px 3px rgba(46, 204, 113, 0.8);
-    background: radial-gradient(circle, rgba(46, 204, 113, 1) 30%, transparent 70%);
-  }
-  
-  // Эффект сетки для многомерности
-  .grid-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-      linear-gradient(rgba(52, 152, 219, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52, 152, 219, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-    pointer-events: none;
-    z-index: 2;
-  }
-  
-  // Анимированные частицы
-  .particles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 20% 30%, rgba(52, 152, 219, 0.3) 0%, transparent 30%),
-        radial-gradient(circle at 80% 70%, rgba(46, 204, 113, 0.3) 0%, transparent 30%);
-      animation: particleMove 20s infinite alternate;
-    }
-  }
-  
-  @keyframes particleMove {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(10px, 10px); }
-  }
-}
-
-/* Стили для side-panel в разных режимах */
-.side-panel {
-  &.classic-mode {
-    background: linear-gradient(135deg, #f5f5dc 0%, #e6d8b5 100%);
-    border: 1px solid #d2b48c;
-    
-    h3 {
+    /* Стили для разных режимов */
+    &.classic-mode {
+      background: rgba(245, 222, 179, 0.92);
+      border: 1px solid #d2b48c;
       color: #5D4037;
     }
-  }
-  
-  &.dnd-mode {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    color: #ecf0f1;
-    border: 1px solid #8e44ad;
     
-    h3 {
-      color: #f1c40f;
+    &.dnd-mode {
+      background: rgba(44, 62, 80, 0.92);
+      border: 1px solid #8e44ad;
+      color: #ecf0f1;
     }
     
+    &.five-d-mode {
+      background: rgba(25, 42, 86, 0.92);
+      border: 1px solid #3498db;
+      color: #e1f5fe;
+    }
+  
+    .panel-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      text-align: center;
+      
+      .piece-icon {
+        font-size: 48px;
+        margin: 10px 0;
+        line-height: 1;
+      }
+      
+      h3 {
+        margin: 5px 0;
+        font-size: 1.2rem;
+      }
+    }
+  
+    .health-section {
+      width: 100%;
+      margin: 20px 0;
+      
+      .health-bar {
+        height: 24px;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 8px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        
+        .health-fill {
+          height: 100%;
+          transition: width 0.4s ease-out;
+        }
+        
+        .health-text {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 13px;
+          font-weight: bold;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+      }
+    }
+  
+    .move-options {
+      margin-top: 25px;
+      
+      .option-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        
+        button {
+          padding: 10px 15px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-size: 15px;
+          
+          &:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+          }
+          
+          &.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+          }
+          
+          &.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+          }
+          
+          .option-icon {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+  }
+  
+  /* Специфичные стили для каждого режима */
+  .side-panel.classic-mode {
     .health-bar {
-      background: rgba(0,0,0,0.3) !important;
+      background: #e6d8b5;
+      border: 1px solid #b58863;
+      
+      .health-fill {
+        background: #8B4513;
+      }
+      
+      .health-text {
+        color: #5D4037;
+      }
+    }
+    
+    button {
+      background: #8B4513;
+      color: white;
+      box-shadow: 0 2px 5px rgba(139, 69, 19, 0.3);
+      
+      &:hover:not(.disabled) {
+        background: #6e3610;
+      }
+      
+      &.active {
+        background: #5D4037;
+        box-shadow: 0 4px 15px rgba(93, 64, 55, 0.4);
+      }
+    }
+  }
+  
+  .side-panel.dnd-mode {
+    .health-bar {
+      background: rgba(0,0,0,0.3);
       border: 1px solid #f1c40f;
+      
+      .health-fill {
+        background: #f1c40f;
+      }
+      
+      .health-text {
+        color: white;
+      }
     }
-  }
-  
-  &.five-d-mode {
-    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-    color: #e1f5fe;
-    border: 1px solid #3498db;
     
-    h3 {
-      color: #00e5ff;
+    button {
+      background: #8e44ad;
+      color: white;
+      box-shadow: 0 2px 5px rgba(142, 68, 173, 0.3);
+      
+      &:hover:not(.disabled) {
+        background: #7d3c98;
+      }
+      
+      &.active {
+        background: #6C3483;
+        box-shadow: 0 4px 15px rgba(108, 52, 131, 0.5);
+      }
+      
+      &.ability-option {
+        background: #e74c3c;
+        box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+        
+        &:hover:not(.disabled) {
+          background: #d62c1a;
+        }
+        
+        &.active {
+          background: #c0392b;
+          box-shadow: 0 4px 15px rgba(192, 57, 43, 0.5);
+        }
+      }
     }
   }
-}
-/* Классические шахматы - благородные переливы дерева и золота */
-.chessboard.classic-mode {
-    border: 15px solid #5D4037;
-    background: linear-gradient(
-      135deg,
-      #8B4513 0%,
-      #A0522D 25%,
-      #CD853F 50%,
-      #D2B48C 75%,
-      #F5DEB3 100%
-    );
-    background-size: 400% 400%;
-    animation: classicGradient 15s ease infinite;
+  
+  .side-panel.five-d-mode {
+    .health-bar {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid #2ecc71;
+      
+      .health-fill {
+        background: #2ecc71;
+      }
+      
+      .health-text {
+        color: white;
+      }
+    }
     
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(93, 64, 55, 0.7) 0%,
-        rgba(210, 180, 140, 0.3) 50%,
-        rgba(93, 64, 55, 0.7) 100%
-      );
-      z-index: 0;
-    }
-  
-    @keyframes classicGradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    button {
+      background: #3498db;
+      color: white;
+      box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+      
+      &:hover:not(.disabled) {
+        background: #2980b9;
+      }
+      
+      &.active {
+        background: #1a5276;
+        box-shadow: 0 4px 15px rgba(26, 82, 118, 0.5);
+      }
     }
   }
   
-  /* D&D режим - мистические фиолетово-черные переливы */
-  .chessboard.dnd-mode {
-    border: 15px solid #8E44AD;
-    background: linear-gradient(
-      135deg,
-      #2C3E50 0%,
-      #4A235A 25%,
-      #6C3483 50%,
-      #8E44AD 75%,
-      #AF7AC5 100%
-    );
-    background-size: 400% 400%;
-    animation: dndGradient 15s ease infinite;
-    box-shadow: 0 0 30px rgba(142, 68, 173, 0.7);
+  /* Адаптация для разных размеров экрана */
+  @media (max-width: 1200px) {
+    .side-panel {
+      width: 240px;
+      right: 15px;
+      padding: 15px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .side-panel {
+      width: 220px;
+      padding: 12px;
+      
+      .panel-header .piece-icon {
+        font-size: 40px;
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .chessboard-container {
+      flex-direction: column;
+      align-items: center;
+    }
     
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(44, 62, 80, 0.8) 0%,
-        rgba(142, 68, 173, 0.4) 50%,
-        rgba(44, 62, 80, 0.8) 100%
-      );
-      z-index: 0;
-    }
-  
-    @keyframes dndGradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .side-panel {
+      position: relative;
+      top: auto;
+      right: auto;
+      transform: none;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto 0;
+      max-height: none;
     }
   }
   
-  /* 5D Chess - космические сине-голубые переливы */
-  .chessboard.five-d-mode {
-    border: 15px solid #3498DB;
-    background: linear-gradient(
-      135deg,
-      #0F2027 0%,
-      #203A43 25%,
-      #2C5364 50%,
-      #3498DB 75%,
-      #00d2ff 100%
-    );
-    background-size: 400% 400%;
-    animation: fiveDGradient 15s ease infinite;
-    box-shadow: 0 0 30px rgba(52, 152, 219, 0.7);
+  @media (max-width: 480px) {
+    .side-panel {
+      padding: 15px;
+      
+      .panel-header .piece-icon {
+        font-size: 36px;
+      }
+      
+      .health-bar {
+        height: 20px;
+      }
+      
+      .move-options .option-buttons button {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+    }
+  }
+  /* Основной контейнер */
+.game-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+  }
+  
+  /* Контейнер шахматной доски */
+  .chessboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* Боковая панель */
+  .side-panel {
+    position: sticky;
+    top: 50vh;
+    transform: translateY(-50%);
+    width: 280px;
+    height: fit-content;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    align-self: flex-start;
+    margin-left: auto;
+  }
+  
+  /* Адаптация для мобильных */
+  @media (max-width: 1024px) {
+    .game-container {
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
     
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(15, 32, 39, 0.8) 0%,
-        rgba(52, 152, 219, 0.4) 50%,
-        rgba(15, 32, 39, 0.8) 100%
-      );
-      z-index: 0;
-    }
-  
-    @keyframes fiveDGradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .side-panel {
+      position: relative;
+      top: auto;
+      transform: none;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto 0;
     }
   }
+  .game-layout {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 30px;
+  }
   
-  /* Добавим эффект "звездной пыли" для 5D режима */
-  .five-d-mode .particles {
-    position: absolute;
+  .board-container {
+    flex: 0 0 auto;
+    /* Фиксированная ширина доски + отступы */
+    width: calc(8 * 60px + 30px); /* 8 клеток по 60px + padding */
+  }
+  
+  .side-panel-container {
+    flex: 0 0 300px; /* Фиксированная ширина панели */
+    position: relative;
+  }
+  
+  .side-panel {
+    position: sticky;
+    top: 50vh;
+    transform: translateY(-50%);
+    width: 100%;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  
+  /* Адаптация для мобильных */
+  @media (max-width: 1024px) {
+    .game-layout {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .board-container {
+      width: 100%;
+      max-width: calc(8 * 60px + 30px);
+    }
+    
+    .side-panel-container {
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
+    }
+    
+    .side-panel {
+      position: relative;
+      top: auto;
+      transform: none;
+    }
+  }
+  .game-screen {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .main-content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .chessboard-container {
+    /* Центрирование доски */
+    margin: 0 auto;
+  }
+  
+  .side-panel-container {
+    position: fixed;
+    right: 10px;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-    overflow: hidden;
+    height: 100vh;
+    width: 300px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+  }
+  
+  .side-panel {
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
     
-    &::before, &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: 
-        radial-gradient(2px 2px at 20% 30%, white 1px, transparent 2px),
-        radial-gradient(2px 2px at 80% 70%, #00d2ff 1px, transparent 2px),
-        radial-gradient(2px 2px at 40% 60%, white 1px, transparent 2px),
-        radial-gradient(2px 2px at 60% 20%, #00d2ff 1px, transparent 2px);
-      background-size: 100px 100px;
-      animation: starsMove 50s linear infinite;
+    /* Стили для разных режимов */
+    &.classic-mode {
+      background: rgba(245, 222, 179, 0.95);
+      border: 1px solid #d2b48c;
     }
-    
-    &::after {
-      background: 
-        radial-gradient(1px 1px at 10% 80%, white 1px, transparent 2px),
-        radial-gradient(1px 1px at 90% 10%, #00d2ff 1px, transparent 2px),
-        radial-gradient(1px 1px at 30% 50%, white 1px, transparent 2px),
-        radial-gradient(1px 1px at 70% 90%, #00d2ff 1px, transparent 2px);
-      background-size: 150px 150px;
-      animation: starsMove 80s linear infinite reverse;
+    &.dnd-mode {
+      background: rgba(44, 62, 80, 0.95);
+      border: 1px solid #8e44ad;
+    }
+    &.five-d-mode {
+      background: rgba(25, 42, 86, 0.95);
+      border: 1px solid #3498db;
     }
   }
   
-  @keyframes starsMove {
-    0% { background-position: 0 0, 0 0, 0 0, 0 0; }
-    100% { background-position: 100px 100px, -100px -100px, 50px -50px, -50px 50px; }
-  }
-  
-  /* Улучшенные эффекты для фигур */
-  .chessboard {
-    span.white {
-      transition: all 0.3s ease;
-      text-shadow: 0 0 8px currentColor;
+  /* Адаптация для мобильных */
+  @media (max-width: 1024px) {
+    .side-panel-wrapper {
+      position: relative;
+      width: 100%;
+      height: auto;
+      padding: 0;
+      margin-top: 20px;
     }
     
-    span.black {
-      transition: all 0.3s ease;
-      text-shadow: 0 0 8px currentColor;
+    .side-panel {
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+      max-height: none;
     }
     
-    .cell:hover span {
-      transform: scale(1.1);
+    .game-screen {
+      flex-direction: column;
     }
-  }
-  
-  /* Особые эффекты для D&D фигур */
-  .dnd-mode {
-    span.white {
-      animation: whitePulse 3s infinite alternate;
-    }
-    
-    span.black {
-      animation: blackPulse 3s infinite alternate;
-    }
-    
-    @keyframes whitePulse {
-      0% { filter: drop-shadow(0 0 5px #f1c40f); }
-      100% { filter: drop-shadow(0 0 15px #f39c12); }
-    }
-    
-    @keyframes blackPulse {
-      0% { filter: drop-shadow(0 0 5px #e74c3c); }
-      100% { filter: drop-shadow(0 0 15px #c0392b); }
-    }
-  }
-  
-  /* Особые эффекты для 5D фигур */
-  .five-d-mode {
-    span.white {
-      animation: whiteGlow 3s infinite alternate;
-    }
-    
-    span.black {
-      animation: blackGlow 3s infinite alternate;
-    }
-    
-    @keyframes whiteGlow {
-      0% { filter: drop-shadow(0 0 5px #2ecc71); }
-      100% { filter: drop-shadow(0 0 15px #27ae60); }
-    }
-    
-    @keyframes blackGlow {
-      0% { filter: drop-shadow(0 0 5px #9b59b6); }
-      100% { filter: drop-shadow(0 0 15px #8e44ad); }
-    }
-  }
-  /* Классические шахматы - теплые деревянные тона */
-.chessboard.classic-mode {
-    background: linear-gradient(
-      135deg,
-      rgba(139, 69, 19, 0.9) 0%,
-      rgba(160, 82, 45, 0.9) 25%,
-      rgba(205, 133, 63, 0.9) 50%,
-      rgba(210, 180, 140, 0.9) 75%,
-      rgba(245, 222, 179, 0.9) 100%
-    );
-    background-size: 300% 300%;
-    animation: classicFlow 12s ease infinite;
-    backdrop-filter: blur(2px);
-    box-shadow: 
-      inset 0 0 20px rgba(210, 180, 140, 0.6),
-      0 0 30px rgba(139, 69, 19, 0.4);
-  }
-  
-  @keyframes classicFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  /* D&D режим - мистические фиолетовые тона */
-  .chessboard.dnd-mode {
-    background: linear-gradient(
-      135deg,
-      rgba(44, 62, 80, 0.9) 0%,
-      rgba(74, 35, 90, 0.9) 25%,
-      rgba(108, 52, 131, 0.9) 50%,
-      rgba(142, 68, 173, 0.9) 75%,
-      rgba(175, 122, 197, 0.9) 100%
-    );
-    background-size: 300% 300%;
-    animation: dndFlow 10s ease infinite;
-    backdrop-filter: blur(3px);
-    box-shadow: 
-      inset 0 0 25px rgba(142, 68, 173, 0.7),
-      0 0 40px rgba(44, 62, 80, 0.5);
-  }
-  
-  @keyframes dndFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  /* 5D Chess - футуристические синие тона */
-  .chessboard.five-d-mode {
-    background: linear-gradient(
-      135deg,
-      rgba(15, 32, 39, 0.9) 0%,
-      rgba(32, 58, 67, 0.9) 25%,
-      rgba(44, 83, 100, 0.9) 50%,
-      rgba(52, 152, 219, 0.9) 75%,
-      rgba(0, 210, 255, 0.9) 100%
-    );
-    background-size: 300% 300%;
-    animation: fiveDFlow 8s ease infinite;
-    backdrop-filter: blur(2px);
-    box-shadow: 
-      inset 0 0 30px rgba(52, 152, 219, 0.6),
-      0 0 50px rgba(0, 210, 255, 0.3);
-  }
-  
-  @keyframes fiveDFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  /* Общие стили для стеклянного эффекта */
-  .chessboard {
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(5px);
-      z-index: -1;
-    }
-    
-    .cell {
-      background-color: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(2px);
-    }
-    
-    .row:nth-child(odd) .cell:nth-child(even),
-    .row:nth-child(even) .cell:nth-child(odd) {
-      background-color: rgba(0, 0, 0, 0.15);
-    }
-  }
-  .chessboard {
-    background: transparent !important; /* Переопределяем любые другие стили */
-    position: relative;
-    overflow: hidden;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: -1; /* Помещаем под основное содержимое */
-    }
-  }
-  
-  /* Классические шахматы - гарантированно работает */
-  .chessboard.classic-mode::after {
-    background: linear-gradient(
-      135deg, 
-      #8B4513 0%, 
-      #A0522D 50%, 
-      #D2B48C 100%
-    );
-    animation: classicBg 15s ease infinite;
-    background-size: 200% 200%;
-  }
-  
-  /* D&D режим - 100% видимый фон */
-  .chessboard.dnd-mode::after {
-    background: linear-gradient(
-      135deg, 
-      #2C3E50 0%, 
-      #6C3483 50%, 
-      #8E44AD 100%
-    );
-    animation: dndBg 12s ease infinite;
-    background-size: 200% 200%;
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.7);
-  }
-  
-  /* 5D Chess - гарантированное отображение */
-  .chessboard.five-d-mode::after {
-    background: linear-gradient(
-      135deg, 
-      #0F2027 0%, 
-      #203A43 50%, 
-      #3498DB 100%
-    );
-    animation: fiveDBg 10s ease infinite;
-    background-size: 200% 200%;
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
-  }
-  
-  /* Анимации */
-  @keyframes classicBg {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  @keyframes dndBg {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 100%; }
-    100% { background-position: 50% 0%; }
-  }
-  
-  @keyframes fiveDBg {
-    0% { background-position: 0% 0%; }
-    50% { background-position: 100% 100%; }
-    100% { background-position: 0% 0%; }
-  }
-  
-  /* Клетки с прозрачностью для просмотра фона */
-  .chessboard .cell {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-  }
-  
-  .chessboard .row:nth-child(odd) .cell:nth-child(even),
-  .chessboard .row:nth-child(even) .cell:nth-child(odd) {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-  }
-  body {
-    background: #222 !important; /* Темный фон страницы для контраста */
   }
 
 --- Файл: D:\DnDchess\src\app\components\chessboard\chessboard.component.ts ---
@@ -1598,13 +1411,18 @@ export class ChessboardComponent implements OnChanges {
   }
 }
 
+
 --- Файл: D:\DnDchess\src\app\components\game\game.component.html ---
 
-<div class="game">
-    <h1>Шахматы (Игра: {{ gameId }})</h1>
-    <p>Ход: {{ gameService.getState().currentPlayer === 'white' ? 'Белые' : 'Чёрные' }}</p>
-    <app-chessboard [state]="gameService.getState()"></app-chessboard>
+<div class="chessboard-container" [class.classic-mode]="chessType === 'classic'"
+                                [class.dnd-mode]="chessType === 'dnd'"
+                                [class.five-d-mode]="chessType === '5d'">
+  <div class="game-info">
+    Ход: {{ gameService.getState().currentPlayer === 'white' ? 'Белые' : 'Чёрные' }}
   </div>
+  <app-chessboard [state]="gameService.getState()"></app-chessboard>
+  <div class="game-id">ID: {{ gameId }}</div>
+</div>
 
 --- Файл: D:\DnDchess\src\app\components\game\game.component.scss ---
 

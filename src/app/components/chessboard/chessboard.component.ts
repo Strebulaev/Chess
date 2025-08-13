@@ -20,10 +20,17 @@ export class ChessboardComponent implements OnChanges {
 
   constructor(private multiplayer: MultiplayerService) {}
 
+  isBoardFlipped = false;
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['state']) {
       this.gameType = this.state?.gameType || 'classic';
       this.clearSelection();
+      
+      // Определяем, нужно ли перевернуть доску
+      if (this.state.currentUserColor) {
+        this.isBoardFlipped = this.state.currentUserColor === 'black';
+      }
     }
   }
 
@@ -135,13 +142,13 @@ export class ChessboardComponent implements OnChanges {
           success = await this.multiplayer.useAbility(this.selectedPiece, targetPosition);
           break;
         case 'passive':
-          success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, true);
+          success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, { isPassive: true });
           break;
         default:
           success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
       }
     } else {
-      success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
+      success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, { isAbility: true });
     }
 
     if (success) {
@@ -154,31 +161,5 @@ export class ChessboardComponent implements OnChanges {
     this.selectedPieceInfo = null;
     this.possibleMoves = [];
     this.selectedMoveType = 'normal';
-  }
-}
-.chessboard {
-  margin: 0 auto; /* Центрирование доски */
-  
-  /* Уменьшенные размеры для мобильных */
-  @media (max-width: 768px) {
-    .cell {
-      width: 40px;
-      height: 40px;
-      
-      span {
-        font-size: 30px;
-      }
-    }
-  }
-
-  @media (max-width: 480px) {
-    .cell {
-      width: 30px;
-      height: 30px;
-      
-      span {
-        font-size: 22px;
-      }
-    }
   }
 }

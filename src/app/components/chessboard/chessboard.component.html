@@ -1,76 +1,83 @@
-<div class="chessboard-wrapper">
-    <div class="game-type-header">
-      <h2>{{ getGameTypeDisplayName() }}</h2>
-    </div>
-    <div class="chessboard-container">
-      <div class="chessboard" [class.dnd-mode]="gameType === 'dnd'"
-           [class.classic-mode]="gameType === 'classic'"
-           [class.five-d-mode]="gameType === '5d'">
-           <div *ngIf="gameType === 'dnd'" class="dnd-decorations">
-            <div class="web web-top-left"></div>
-            <div class="chandelier chandelier-left"></div>
-            <div class="chandelier chandelier-right"></div>
-            <div class="pumpkin"></div>
-            <div class="point-light point-light-left"></div>
-            <div class="point-light point-light-right"></div>
-          </div>        
-        
-        <div *ngFor="let row of [0,1,2,3,4,5,6,7]; let y = index" class="row">
-          <div
-            *ngFor="let col of [0,1,2,3,4,5,6,7]; let x = index"
-            class="cell"
-            [class.selected]="selectedPiece?.x === x && selectedPiece?.y === y"
-            [class.possible-move]="isPossibleMove({x, y})"
-            (click)="handleCellClick({x, y})"
-          >
-            <span *ngIf="getPieceAt({x, y}) as piece" 
-                  [class.white]="piece.color === 'white'"
-                  [class.black]="piece.color === 'black'"
-                  [class.low-health]="gameType === 'dnd' && piece.health <= 30">
-              {{ getPieceSymbol(piece.type) }}
-            </span>
-            
-            <div *ngIf="isPossibleMove({x, y})" class="move-dot"></div>
-          </div>
+<div class="game-screen">
+    <!-- Основной контейнер с центрированной доской -->
+    <div class="main-content">
+      <div class="chessboard-wrapper">
+        <div class="game-type-header">
+          <h2>{{ getGameTypeDisplayName() }}</h2>
         </div>
-      </div>
-  
-    <!-- Боковая панель информации о фигуре -->
-    <div class="side-panel" *ngIf="selectedPieceInfo"
-        [class.dnd-mode]="gameType === 'dnd'"
-        [class.classic-mode]="gameType === 'classic'"
-        [class.five-d-mode]="gameType === '5d'">
-        <div class="panel-header">
-        <h3>{{ getGameTypeDisplayName() }}</h3>
-        <span class="piece-icon">{{ getPieceSymbol(selectedPieceInfo.type) }}</span>
-        <h3>{{ selectedPieceInfo.type | titlecase }}</h3>
-        </div>
-        
-        <!-- D&D специфичная информация -->
-        <div *ngIf="gameType === 'dnd'" class="health-section">
-        <div class="health-bar">
-            <div class="health-fill" [style.width.%]="(selectedPieceInfo.health / selectedPieceInfo.maxHealth) * 100"></div>
-            <span class="health-text">{{ selectedPieceInfo.health }}/{{ selectedPieceInfo.maxHealth }} HP</span>
-        </div>
-        </div>
-
-        <div *ngIf="gameType === 'dnd'" class="move-options">
-            <div class="option-buttons">
-              <button class="move-option" 
-                      [class.active]="selectedMoveType === 'normal'"
-                      (click)="selectMoveType('normal')">
-                <span class="option-icon">♟</span>
-                <span class="option-label">Normal Move</span>
-              </button>
+        <div class="chessboard-container">
+            <div class="chessboard" 
+            [class.dnd-mode]="gameType === 'dnd'"
+            [class.classic-mode]="gameType === 'classic'"
+            [class.five-d-mode]="gameType === '5d'"
+            [class.flipped]="isBoardFlipped">
+             <div *ngIf="gameType === 'dnd'" class="dnd-decorations">
+              <div class="web web-top-left"></div>
+              <div class="chandelier chandelier-left"></div>
+              <div class="chandelier chandelier-right"></div>
+              <div class="pumpkin"></div>
+              <div class="point-light point-light-left"></div>
+              <div class="point-light point-light-right"></div>
+            </div>        
+          
+          <div *ngFor="let row of [0,1,2,3,4,5,6,7]; let y = index" class="row">
+            <div
+              *ngFor="let col of [0,1,2,3,4,5,6,7]; let x = index"
+              class="cell"
+              [class.selected]="selectedPiece?.x === x && selectedPiece?.y === y"
+              [class.possible-move]="isPossibleMove({x, y})"
+              (click)="handleCellClick({x, y})"
+            >
+              <span *ngIf="getPieceAt({x, y}) as piece" 
+                    [class.white]="piece.color === 'white'"
+                    [class.black]="piece.color === 'black'"
+                    [class.low-health]="gameType === 'dnd' && piece.health <= 30">
+                {{ getPieceSymbol(piece.type) }}
+              </span>
               
-              <button class="move-option ability-option"
-                      [class.active]="selectedMoveType === 'ability'"
-                      [class.disabled]="selectedPieceInfo.abilityCharges <= 0"
-                      (click)="selectMoveType('ability')">
-                <span class="option-icon">⚔️</span>
-                <span class="option-label">Attack ({{selectedPieceInfo.abilityCharges}}/3)</span>
-              </button>
+              <div *ngIf="isPossibleMove({x, y})" class="move-dot"></div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  
+    <div class="side-panel-container">
+        <div class="side-panel" *ngIf="selectedPieceInfo"
+             [class.dnd-mode]="gameType === 'dnd'"
+             [class.classic-mode]="gameType === 'classic'"
+             [class.five-d-mode]="gameType === '5d'">
+      <div class="panel-header">
+        <h3>{{ getGameTypeDisplayName() }}</h3>
+        <span class="piece-icon">{{ getPieceSymbol(selectedPieceInfo.type) }}</span>
+        <h3>{{ selectedPieceInfo.type | titlecase }}</h3>
+      </div>
+      
+      <!-- D&D специфичная информация -->
+      <div *ngIf="gameType === 'dnd'" class="health-section">
+        <div class="health-bar">
+          <div class="health-fill" [style.width.%]="(selectedPieceInfo.health / selectedPieceInfo.maxHealth) * 100"></div>
+          <span class="health-text">{{ selectedPieceInfo.health }}/{{ selectedPieceInfo.maxHealth }} HP</span>
+        </div>
+      </div>
+  
+      <div *ngIf="gameType === 'dnd'" class="move-options">
+        <div class="option-buttons">
+          <button class="move-option" 
+                  [class.active]="selectedMoveType === 'normal'"
+                  (click)="selectMoveType('normal')">
+            <span class="option-icon">♟</span>
+            <span class="option-label">Normal Move</span>
+          </button>
+          
+          <button class="move-option ability-option"
+                  [class.active]="selectedMoveType === 'ability'"
+                  [class.disabled]="selectedPieceInfo.abilityCharges <= 0"
+                  (click)="selectMoveType('ability')">
+            <span class="option-icon">⚔️</span>
+            <span class="option-label">Attack ({{selectedPieceInfo.abilityCharges}}/3)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,4 +1,8 @@
+<!-- Файл: src/app/components/lobby/lobby.component.html -->
 <div class="lobby-container">
+  <div class="decorative-corner decorative-corner-tl"></div>
+  <div class="decorative-corner decorative-corner-br"></div>
+  
   <div class="mode-indicator" *ngIf="currentMode">
     <div class="mode-icon">{{currentMode.icon}}</div>
     <div class="mode-title">{{currentMode.title}}</div>
@@ -10,16 +14,16 @@
     <div class="option-card">
       <h3>Create New Game</h3>
       <button (click)="createGame()" [disabled]="isLoading">
-        {{ isLoading ? 'Creating...' : 'Create' }}
+        {{ isLoading ? 'Creating...' : 'Create Game' }}
       </button>
     </div>
 
     <div class="option-card">
       <h3>Join Existing Game</h3>
       <div class="input-group">
-        <input [(ngModel)]="gameId" placeholder="Game ID">
+        <input [(ngModel)]="gameId" placeholder="Enter Game ID">
         <button (click)="joinGame()" [disabled]="isLoading || !gameId">
-          {{ isLoading ? 'Joining...' : 'Join' }}
+          {{ isLoading ? 'Joining...' : 'Join Game' }}
         </button>
       </div>
     </div>

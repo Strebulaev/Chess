@@ -657,6 +657,12 @@ export const appConfig: ApplicationConfig = {
 --- Файл: D:\Chess\src\app\app.routes.ts ---
 
 import { Routes } from '@angular/router';
+import { DndGameComponent } from './features/dnd-chess/components/game/dnd-game.component';
+import { FiveDGameComponent } from './features/five-d-chess/components/game/five-d-game.component';
+import { ClassicGameComponent } from './features/classic-chess/components/game/classic-game.component';
+import { DndLobbyComponent } from './features/dnd-chess/components/lobby/dnd-lobby.component';
+import { FiveDLobbyComponent } from './features/five-d-chess/components/lobby/five-d-lobby.component';
+import { ClassicLobbyComponent } from './features/classic-chess/components/lobby/classic-lobby.component';
 
 export const routes: Routes = [
   { 
@@ -664,23 +670,24 @@ export const routes: Routes = [
     children: [
       { 
         path: 'classic',
-        loadChildren: () => import('./features/classic-chess/classic-chess.module')
-          .then(m => m.ClassicChessModule)
+        children: [
+          { path: '', component: ClassicLobbyComponent },
+          { path: 'game/:id', component: ClassicGameComponent }
+        ]
       },
       { 
         path: '5d',
-        loadChildren: () => import('./features/five-d-chess/five-d-chess.module')
-          .then(m => m.FiveDChessModule)
+        children: [
+          { path: '', component: FiveDLobbyComponent },
+          { path: 'game/:id', component: FiveDGameComponent }
+        ]
       },
       { 
         path: 'dnd',
-        loadChildren: () => import('./features/dnd-chess/dnd-chess.module')
-          .then(m => m.DndChessModule)
-      },
-      { 
-        path: 'game/:id',
-        loadComponent: () => import('./shared/ui/game-wrapper/game-wrapper.component')
-          .then(m => m.GameWrapperComponent)
+        children: [
+          { path: '', component: DndLobbyComponent },
+          { path: 'game/:id', component: DndGameComponent }
+        ]
       },
       { 
         path: '',
@@ -693,10 +700,6 @@ export const routes: Routes = [
     path: '',
     redirectTo: 'chess/classic',
     pathMatch: 'full'
-  },
-  { 
-    path: '**',
-    redirectTo: 'chess/classic'
   }
 ];
 
@@ -712,8 +715,8 @@ import { RouterModule } from '@angular/router';
     RouterModule.forChild([
       { 
         path: '', 
-        loadComponent: () => import('./components/lobby/lobby.component')
-          .then(m => m.LobbyComponent) 
+        loadComponent: () => import('./components/lobby/classic-lobby.component')
+          .then(m => m.ClassicLobbyComponent) 
       },
       { 
         path: 'game/:id', 
@@ -874,34 +877,30 @@ export class ClassicGameComponent implements OnInit, OnDestroy {
   }
 }
 
---- Файл: D:\Chess\src\app\features\classic-chess\components\lobby\lobby.component.html ---
+--- Файл: D:\Chess\src\app\features\classic-chess\components\lobby\classic-lobby.component.html ---
 
-<!-- Файл: src/app/components/lobby/lobby.component.html -->
 <div class="lobby-container">
-  <div class="decorative-corner decorative-corner-tl"></div>
-  <div class="decorative-corner decorative-corner-br"></div>
-  
-  <div class="mode-indicator" *ngIf="currentMode">
+  <div class="mode-indicator">
     <div class="mode-icon">{{currentMode.icon}}</div>
     <div class="mode-title">{{currentMode.title}}</div>
   </div>
 
-  <h2>Create or Join Game</h2>
+  <h2>Создать или присоединиться к игре</h2>
   
   <div class="game-options">
     <div class="option-card">
-      <h3>Create New Game</h3>
+      <h3>Создать новую игру</h3>
       <button (click)="createGame()" [disabled]="isLoading">
-        {{ isLoading ? 'Creating...' : 'Create Game' }}
+        {{ isLoading ? 'Создание...' : 'Создать игру' }}
       </button>
     </div>
 
     <div class="option-card">
-      <h3>Join Existing Game</h3>
+      <h3>Присоединиться к игре</h3>
       <div class="input-group">
-        <input [(ngModel)]="gameId" placeholder="Enter Game ID">
+        <input [(ngModel)]="gameId" placeholder="Введите ID игры">
         <button (click)="joinGame()" [disabled]="isLoading || !gameId">
-          {{ isLoading ? 'Joining...' : 'Join Game' }}
+          {{ isLoading ? 'Подключение...' : 'Присоединиться' }}
         </button>
       </div>
     </div>
@@ -910,9 +909,21 @@ export class ClassicGameComponent implements OnInit, OnDestroy {
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
+
+  <!-- Модальное окно с ссылкой -->
+  <div class="share-modal" *ngIf="showShareModal">
+    <div class="modal-content">
+      <h3>Ссылка на игру</h3>
+      <div class="link-box" (click)="copyGameLink()">
+        {{ gameLink }}
+        <span class="copy-message" *ngIf="linkCopied">Скопировано!</span>
+      </div>
+      <button class="close-btn" (click)="closeModal()">Начать игру</button>
+    </div>
+  </div>
 </div>
 
---- Файл: D:\Chess\src\app\features\classic-chess\components\lobby\lobby.component.scss ---
+--- Файл: D:\Chess\src\app\features\classic-chess\components\lobby\classic-lobby.component.scss ---
 
 /* Файл: src/app/components/lobby/lobby.component.scss */
 
@@ -1031,7 +1042,7 @@ export class ClassicGameComponent implements OnInit, OnDestroy {
         transition: var(--transition);
 
         &:hover {
-          background: adjust-color(#3498db, $lightness: -10%);
+          background: #3498db;
           transform: translateY(-2px);
         }
 
@@ -1369,10 +1380,64 @@ export class ClassicGameComponent implements OnInit, OnDestroy {
     }
   }
 }
+.share-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 
---- Файл: D:\Chess\src\app\features\classic-chess\components\lobby\lobby.component.ts ---
+  .modal-content {
+    background: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 90%;
+    width: 400px;
+    color: white;
+  }
 
-import { ActivatedRoute, Router } from '@angular/router';
+  .link-box {
+    background: #34495e;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 15px 0;
+    word-break: break-all;
+    cursor: pointer;
+    position: relative;
+    
+    &:hover {
+      background: #3d566e;
+    }
+  }
+
+  .copy-message {
+    color: #2ecc71;
+    margin-left: 10px;
+    font-size: 0.9em;
+  }
+
+  .close-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    
+    &:hover {
+      background: #c0392b;
+    }
+  }
+}
+
+--- Файл: D:\Chess\src\app\features\classic-chess\components\lobby\classic-lobby.component.ts ---
+
+import { ActivatedRoute, Route, Router } from '@angular/router';
 import { MultiplayerService } from '../../../../shared/chess-core/services/multiplayer.service';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -1382,35 +1447,22 @@ import { CommonModule } from '@angular/common';
   selector: 'app-classic-lobby',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.scss']
+  templateUrl: './classic-lobby.component.html',
+  styleUrls: ['./classic-lobby.component.scss']
 })
-export class LobbyComponent {
-  gameId: string = '';
+export class ClassicLobbyComponent {
+  currentMode = {
+    path: 'classic',
+    title: 'Classic Chess',
+    icon: '♔',
+    description: 'Traditional 8x8 chess with standard rules'
+  };
+  showShareModal = false;
+  gameLink = '';
+  linkCopied = false;
   isLoading = false;
-  errorMessage: string | null = null;
-  currentMode: any;
-
-  chessModes = [
-    {
-      path: 'classic',
-      title: 'Classic Chess',
-      icon: '♔',
-      description: 'Traditional 8x8 chess'
-    },
-    {
-      path: '5d',
-      title: '5D Chess',
-      icon: '🌀',
-      description: 'Multidimensional chess'
-    },
-    {
-      path: 'dnd',
-      title: 'D&D Chess',
-      icon: '⚔️',
-      description: 'Fantasy RPG chess'
-    }
-  ];
+  errorMessage = '';
+  gameId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -1418,41 +1470,38 @@ export class LobbyComponent {
     private multiplayer: MultiplayerService
   ) {}
 
-  ngOnInit(): void {
-    // Получаем тип игры из параметров маршрута
-    const gameType = this.route.snapshot.data['gameType'] || 'classic';
-    this.currentMode = this.chessModes.find(m => m.path === gameType) || this.chessModes[0];
-  }
-
   createGame() {
     this.isLoading = true;
-    const gameType = this.route.snapshot.params['gameType'] || 'classic';
-    
-    this.multiplayer.createGame(gameType).then(id => {
-      this.router.navigate(['/chess/game', id]);
+    this.multiplayer.createGame('classic').then(id => {
+      this.gameLink = `${window.location.origin}/chess/classic/game/${id}`;
+      this.showShareModal = true;
+      this.linkCopied = false;
+      this.gameId = id;
     }).catch(error => {
-      this.errorMessage = 'Failed to create game: ' + error.message;
+      this.errorMessage = 'Ошибка при создании игры: ' + error.message;
     }).finally(() => {
       this.isLoading = false;
     });
   }
-  
+
+  copyGameLink() {
+    navigator.clipboard.writeText(this.gameLink).then(() => {
+      this.linkCopied = true;
+      setTimeout(() => this.linkCopied = false, 2000);
+    });
+  }
+
+  closeModal() {
+    this.showShareModal = false;
+    this.router.navigate(['/chess/classic/game', this.gameId]);
+  }
+
   joinGame() {
     if (!this.gameId) {
-      this.errorMessage = 'Please enter a game ID';
+      this.errorMessage = 'Введите ID игры';
       return;
     }
-    
-    this.isLoading = true;
-    const parts = this.gameId.split('-');
-    
-    if (parts.length < 2 || !['classic', '5d', 'dnd'].includes(parts[0])) {
-      this.errorMessage = 'Invalid game ID format';
-      this.isLoading = false;
-      return;
-    }
-    
-    this.router.navigate(['/chess/game', this.gameId]);
+    this.router.navigate(['/chess/classic/game', this.gameId]);
   }
 }
 
@@ -1461,12 +1510,19 @@ export class LobbyComponent {
 import { Injectable } from '@angular/core';
 import { BaseGameService } from '../../../shared/chess-core/services/base-game.service';
 import { GameState } from '../../../shared/chess-core/models/game-state.model';
-import { ChessPiece, Pawn, Rook, Knight, Bishop, Queen, King } from '../../../shared/chess-core/models/chess-piece.model';
+import { ChessPiece, Position, PieceColor } from '../../../shared/chess-core/models/chess-piece.model';
+import { Pawn, Rook, Knight, Bishop, Queen, King } from '../../../shared/chess-core/models/chess-piece.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClassicGameService extends BaseGameService {
+  private enPassantTarget: Position | null = null;
+  private castlingRights = {
+    white: { kingSide: true, queenSide: true },
+    black: { kingSide: true, queenSide: true }
+  };
+
   getState(): GameState {
     return this.state;
   }
@@ -1493,6 +1549,287 @@ export class ClassicGameService extends BaseGameService {
       default: throw new Error(`Unknown piece type: ${pieceData.type}`);
     }
   }
+
+  getPieceAt(position: Position): ChessPiece | null {
+    return this.state.pieces.find(p => 
+      p.position.x === position.x && p.position.y === position.y
+    ) || null;
+  }
+
+  movePiece(from: Position, to: Position): boolean {
+    const piece = this.getPieceAt(from);
+    if (!piece || piece.color !== this.state.currentPlayer) {
+      return false;
+    }
+
+    if (!this.isValidMove(piece, from, to)) {
+      return false;
+    }
+
+    const tempState = this.createTempState(from, to);
+    if (this.isKingInCheck(tempState, piece.color)) {
+      return false;
+    }
+
+    this.executeMove(from, to);
+    this.updateGameStatus();
+    this.switchPlayer();
+    return true;
+  }
+
+  public isValidMove(piece: ChessPiece, from: Position, to: Position): boolean {
+    if (!piece.canMove(to, this.state)) {
+      return false;
+    }
+
+    const targetPiece = this.getPieceAt(to);
+    if (targetPiece && targetPiece.color === piece.color) {
+      return false;
+    }
+
+    if (piece instanceof Pawn) {
+      return this.isValidPawnMove(piece as Pawn, from, to);
+    }
+    if (piece instanceof King) {
+      return this.isValidKingMove(piece as King, from, to);
+    }
+
+    if (piece instanceof Rook || piece instanceof Bishop || piece instanceof Queen) {
+      return this.isPathClear(from, to);
+    }
+
+    return true;
+  }
+
+  private isValidPawnMove(pawn: Pawn, from: Position, to: Position): boolean {
+    const direction = pawn.color === 'white' ? 1 : -1;
+    const startRow = pawn.color === 'white' ? 1 : 6;
+
+    if (to.x === from.x && to.y === from.y + direction) {
+      return !this.getPieceAt(to);
+    }
+
+    if (Math.abs(to.x - from.x) === 1 && to.y === from.y + direction) {
+      const targetPiece = this.getPieceAt(to);
+      if (targetPiece && targetPiece.color !== pawn.color) {
+        return true;
+      }
+      if (this.enPassantTarget && 
+          to.x === this.enPassantTarget.x && 
+          to.y === this.enPassantTarget.y) {
+        return true;
+      }
+    }
+
+    if (!pawn.hasMoved && to.x === from.x && to.y === from.y + 2 * direction) {
+      const intermediatePos = { x: from.x, y: from.y + direction };
+      return !this.getPieceAt(to) && !this.getPieceAt(intermediatePos);
+    }
+
+    return false;
+  }
+
+  private isValidKingMove(king: King, from: Position, to: Position): boolean {
+    if (Math.abs(to.x - from.x) <= 1 && Math.abs(to.y - from.y) <= 1) {
+      return true;
+    }
+
+    if (!king.hasMoved && Math.abs(to.x - from.x) === 2 && to.y === from.y) {
+      return this.canCastle(king, from, to);
+    }
+
+    return false;
+  }
+
+  private canCastle(king: King, from: Position, to: Position): boolean {
+    if (this.isKingInCheck(this.state, king.color)) {
+      return false;
+    }
+
+    const rookX = to.x > from.x ? 7 : 0;
+    const rook = this.getPieceAt({ x: rookX, y: from.y });
+    if (!(rook instanceof Rook) || rook.hasMoved) {
+      return false;
+    }
+
+    const direction = to.x > from.x ? 1 : -1;
+    for (let x = from.x + direction; x !== rookX; x += direction) {
+      if (this.getPieceAt({ x, y: from.y })) {
+        return false;
+      }
+    }
+
+    for (let x = from.x; x !== to.x + direction; x += direction) {
+      const tempPos = { x, y: from.y };
+      const tempState = this.createTempState(from, tempPos);
+      if (this.isKingInCheck(tempState, king.color)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private isPathClear(from: Position, to: Position): boolean {
+    const dx = Math.sign(to.x - from.x);
+    const dy = Math.sign(to.y - from.y);
+    let x = from.x + dx;
+    let y = from.y + dy;
+
+    while (x !== to.x || y !== to.y) {
+      if (this.getPieceAt({ x, y })) {
+        return false;
+      }
+      x += dx;
+      y += dy;
+    }
+
+    return true;
+  }
+
+  private executeMove(from: Position, to: Position): void {
+    const piece = this.getPieceAt(from);
+    if (!piece) return;
+
+    if (piece instanceof Pawn && this.enPassantTarget && 
+        to.x === this.enPassantTarget.x && to.y === this.enPassantTarget.y) {
+      const capturedPawnPos = { x: to.x, y: from.y };
+      this.state.pieces = this.state.pieces.filter(p => 
+        !(p.position.x === capturedPawnPos.x && p.position.y === capturedPawnPos.y)
+      );
+    }
+
+    if (piece instanceof King && Math.abs(to.x - from.x) === 2) {
+      this.executeCastle(from, to);
+      return;
+    }
+
+    piece.position = to;
+    piece.hasMoved = true;
+
+    this.enPassantTarget = null;
+    if (piece instanceof Pawn && Math.abs(to.y - from.y) === 2) {
+      this.enPassantTarget = { x: from.x, y: from.y + (to.y - from.y) / 2 };
+    }
+
+    if (piece instanceof Pawn && (to.y === 0 || to.y === 7)) {
+      this.promotePawn(to, 'queen');
+    }
+
+    this.state.pieces = this.state.pieces.filter(p => 
+      !(p.position.x === to.x && p.position.y === to.y && p !== piece)
+    );
+
+    this.state.turnNumber++;
+  }
+
+  private executeCastle(from: Position, to: Position): void {
+    const king = this.getPieceAt(from) as King;
+    king.position = to;
+    king.hasMoved = true;
+
+    const rookX = to.x > from.x ? 7 : 0;
+    const newRookX = to.x > from.x ? 5 : 3;
+    const rook = this.getPieceAt({ x: rookX, y: from.y }) as Rook;
+
+    rook.position = { x: newRookX, y: from.y };
+    rook.hasMoved = true;
+  }
+
+  public promotePawn(position: Position, pieceType: 'queen' | 'rook' | 'bishop' | 'knight'): void {
+    const pawn = this.getPieceAt(position);
+    if (!(pawn instanceof Pawn)) return;
+
+    const color = pawn.color;
+    this.state.pieces = this.state.pieces.filter(p => p !== pawn);
+
+    switch (pieceType) {
+      case 'queen':
+        this.state.pieces.push(new Queen(position, color));
+        break;
+      case 'rook':
+        this.state.pieces.push(new Rook(position, color));
+        break;
+      case 'bishop':
+        this.state.pieces.push(new Bishop(position, color));
+        break;
+      case 'knight':
+        this.state.pieces.push(new Knight(position, color));
+        break;
+    }
+  }
+
+  public isKingInCheck(state: GameState, color: PieceColor): boolean {
+    const kingPos = this.findKingPosition(state, color);
+    if (!kingPos) return false;
+
+    return state.pieces.some(piece => 
+      piece.color !== color && 
+      piece.canMove(kingPos, state)
+    );
+  }
+
+  private findKingPosition(state: GameState, color: PieceColor): Position | null {
+    const king = state.pieces.find(p => 
+      p instanceof King && p.color === color
+    );
+    return king ? king.position : null;
+  }
+
+  public updateGameStatus(): void {
+    const currentColor = this.state.currentPlayer;
+    const opponentColor = currentColor === 'white' ? 'black' : 'white';
+
+    this.state.isCheck = this.isKingInCheck(this.state, opponentColor);
+
+    const hasLegalMoves = this.hasAnyLegalMoves(opponentColor);
+    
+    if (this.state.isCheck && !hasLegalMoves) {
+      this.state.isCheckmate = true;
+    } else if (!hasLegalMoves) {
+      this.state.isStalemate = true;
+    }
+  }
+
+  private hasAnyLegalMoves(color: PieceColor): boolean {
+    for (const piece of this.state.pieces) {
+      if (piece.color !== color) continue;
+
+      for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < 8; y++) {
+          const to = { x, y };
+          if (this.isValidMove(piece, piece.position, to)) {
+            const tempState = this.createTempState(piece.position, to);
+            if (!this.isKingInCheck(tempState, color)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  public createTempState(from: Position, to: Position): GameState {
+    const piece = this.getPieceAt(from);
+    if (!piece) return JSON.parse(JSON.stringify(this.state));
+
+    const tempState = JSON.parse(JSON.stringify(this.state));
+    const tempPiece = tempState.pieces.find((p: any) => 
+      p.position.x === from.x && p.position.y === from.y
+    );
+
+    tempPiece.position = { ...to };
+    tempState.pieces = tempState.pieces.filter((p: any) => 
+      !(p.position.x === to.x && p.position.y === to.y && p !== tempPiece)
+    );
+
+    return tempState;
+  }
+
+  public switchPlayer(): void {
+    this.state.currentPlayer = this.state.currentPlayer === 'white' ? 'black' : 'white';
+  }
 }
 
 --- Файл: D:\Chess\src\app\features\dnd-chess\dnd-chess.module.ts ---
@@ -1507,8 +1844,8 @@ import { RouterModule } from '@angular/router';
     RouterModule.forChild([
       { 
         path: '', 
-        loadComponent: () => import('./components/lobby/lobby.component')
-          .then(m => m.LobbyComponent) 
+        loadComponent: () => import('./components/lobby/dnd-lobby.component')
+          .then(m => m.DndLobbyComponent) 
       },
       { 
         path: 'game/:id', 
@@ -1669,34 +2006,39 @@ export class DndGameComponent implements OnInit, OnDestroy {
   }
 }
 
---- Файл: D:\Chess\src\app\features\dnd-chess\components\lobby\lobby.component.html ---
+--- Файл: D:\Chess\src\app\features\dnd-chess\components\lobby\dnd-lobby.component.html ---
 
-<!-- Файл: src/app/components/lobby/lobby.component.html -->
 <div class="lobby-container">
-  <div class="decorative-corner decorative-corner-tl"></div>
-  <div class="decorative-corner decorative-corner-br"></div>
-  
-  <div class="mode-indicator" *ngIf="currentMode">
+  <div class="maintenance-notice" *ngIf="isUnderMaintenance">
+    <div class="maintenance-content">
+      <div class="maintenance-icon">🔧</div>
+      <h3>На техническом обслуживании</h3>
+      <p>Этот режим игры временно недоступен</p>
+      <p>Попробуйте классические шахматы!</p>
+      <button class="classic-btn" (click)="goToClassic()">К классическим шахматам</button>
+    </div>
+  </div>
+  <div class="mode-indicator">
     <div class="mode-icon">{{currentMode.icon}}</div>
     <div class="mode-title">{{currentMode.title}}</div>
   </div>
 
-  <h2>Create or Join Game</h2>
+  <h2>Создать или присоединиться к игре</h2>
   
   <div class="game-options">
     <div class="option-card">
-      <h3>Create New Game</h3>
+      <h3>Создать новую игру</h3>
       <button (click)="createGame()" [disabled]="isLoading">
-        {{ isLoading ? 'Creating...' : 'Create Game' }}
+        {{ isLoading ? 'Создание...' : 'Создать игру' }}
       </button>
     </div>
 
     <div class="option-card">
-      <h3>Join Existing Game</h3>
+      <h3>Присоединиться к игре</h3>
       <div class="input-group">
-        <input [(ngModel)]="gameId" placeholder="Enter Game ID">
+        <input [(ngModel)]="gameId" placeholder="Введите ID игры">
         <button (click)="joinGame()" [disabled]="isLoading || !gameId">
-          {{ isLoading ? 'Joining...' : 'Join Game' }}
+          {{ isLoading ? 'Подключение...' : 'Присоединиться' }}
         </button>
       </div>
     </div>
@@ -1705,9 +2047,21 @@ export class DndGameComponent implements OnInit, OnDestroy {
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
+
+  <!-- Модальное окно с ссылкой -->
+  <div class="share-modal" *ngIf="showShareModal">
+    <div class="modal-content">
+      <h3>Ссылка на игру</h3>
+      <div class="link-box" (click)="copyGameLink()">
+        {{ gameLink }}
+        <span class="copy-message" *ngIf="linkCopied">Скопировано!</span>
+      </div>
+      <button class="close-btn" (click)="closeModal()">Начать игру</button>
+    </div>
+  </div>
 </div>
 
---- Файл: D:\Chess\src\app\features\dnd-chess\components\lobby\lobby.component.scss ---
+--- Файл: D:\Chess\src\app\features\dnd-chess\components\lobby\dnd-lobby.component.scss ---
 
 /* Файл: src/app/components/lobby/lobby.component.scss */
 
@@ -1826,7 +2180,7 @@ export class DndGameComponent implements OnInit, OnDestroy {
         transition: var(--transition);
 
         &:hover {
-          background: adjust-color(#3498db, $lightness: -10%);
+          background: #3498db;
           transform: translateY(-2px);
         }
 
@@ -2164,8 +2518,84 @@ export class DndGameComponent implements OnInit, OnDestroy {
     }
   }
 }
+.maintenance-notice {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
 
---- Файл: D:\Chess\src\app\features\dnd-chess\components\lobby\lobby.component.ts ---
+  .maintenance-content {
+    background: linear-gradient(135deg, #2c3e50, #4a6bda);
+    padding: 2rem;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 500px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #f1c40f;
+    animation: pulse 2s infinite;
+
+    .maintenance-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: bounce 2s infinite;
+    }
+
+    h3 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #f1c40f;
+    }
+
+    p {
+      margin: 0.5rem 0;
+      font-size: 1.2rem;
+    }
+  }
+
+  .classic-btn {
+    background: #f1c40f;
+    color: #2c3e50;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+
+    &:hover {
+      background: #e67e22;
+      transform: scale(1.05);
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(241, 196, 15, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.lobby-content.blurred {
+  filter: blur(5px);
+  pointer-events: none;
+}
+
+--- Файл: D:\Chess\src\app\features\dnd-chess\components\lobby\dnd-lobby.component.ts ---
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { MultiplayerService } from '../../../../shared/chess-core/services/multiplayer.service';
@@ -2175,79 +2605,66 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-classic-lobby',
-  templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.scss'],
+  templateUrl: './dnd-lobby.component.html',
+  styleUrls: ['./dnd-lobby.component.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule]
 })
-export class LobbyComponent {
-  gameId: string = '';
+export class DndLobbyComponent {
+  currentMode = {
+    path: 'dnd',
+    title: 'D&D Chess',
+    icon: '⚔️',
+    description: 'Fantasy RPG chess with special abilities'
+  };
+  showShareModal = false;
+  gameLink = '';
+  linkCopied = false;
   isLoading = false;
-  errorMessage: string | null = null;
-  currentMode: any;
-
-  chessModes = [
-    {
-      path: 'classic',
-      title: 'Classic Chess',
-      icon: '♔',
-      description: 'Traditional 8x8 chess'
-    },
-    {
-      path: '5d',
-      title: '5D Chess',
-      icon: '🌀',
-      description: 'Multidimensional chess'
-    },
-    {
-      path: 'dnd',
-      title: 'D&D Chess',
-      icon: '⚔️',
-      description: 'Fantasy RPG chess'
-    }
-  ];
-
+  errorMessage = '';
+  gameId = '';
+  isUnderMaintenance = true;
+  
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private multiplayer: MultiplayerService
   ) {}
-
-  ngOnInit(): void {
-    // Получаем тип игры из параметров маршрута
-    const gameType = this.route.snapshot.data['gameType'] || 'classic';
-    this.currentMode = this.chessModes.find(m => m.path === gameType) || this.chessModes[0];
+  goToClassic() {
+    this.router.navigate(['/chess/classic']);
   }
-
   createGame() {
     this.isLoading = true;
-    const gameType = this.route.snapshot.params['gameType'] || 'classic';
-    
-    this.multiplayer.createGame(gameType).then(id => {
-      this.router.navigate(['/chess/game', id]);
+    this.multiplayer.createGame('dnd').then(id => {
+      this.gameLink = `${window.location.origin}/chess/dnd/game/${id}`;
+      this.showShareModal = true;
+      this.linkCopied = false;
+      this.gameId = id;
     }).catch(error => {
-      this.errorMessage = 'Failed to create game: ' + error.message;
+      this.errorMessage = 'Ошибка при создании игры: ' + error.message;
     }).finally(() => {
       this.isLoading = false;
     });
   }
-  
+
+  copyGameLink() {
+    navigator.clipboard.writeText(this.gameLink).then(() => {
+      this.linkCopied = true;
+      setTimeout(() => this.linkCopied = false, 2000);
+    });
+  }
+
+  closeModal() {
+    this.showShareModal = false;
+    this.router.navigate(['/chess/dnd/game', this.gameId]);
+  }
+
   joinGame() {
     if (!this.gameId) {
-      this.errorMessage = 'Please enter a game ID';
+      this.errorMessage = 'Введите ID игры';
       return;
     }
-    
-    this.isLoading = true;
-    const parts = this.gameId.split('-');
-    
-    if (parts.length < 2 || !['classic', '5d', 'dnd'].includes(parts[0])) {
-      this.errorMessage = 'Invalid game ID format';
-      this.isLoading = false;
-      return;
-    }
-    
-    this.router.navigate(['/chess/game', this.gameId]);
+    this.router.navigate(['/chess/dnd/game', this.gameId]);
   }
 }
 
@@ -2302,8 +2719,8 @@ import { RouterModule } from '@angular/router';
     RouterModule.forChild([
       { 
         path: '', 
-        loadComponent: () => import('./components/lobby/lobby.component')
-          .then(m => m.LobbyComponent) 
+        loadComponent: () => import('./components/lobby/five-d-lobby.component')
+          .then(m => m.FiveDLobbyComponent) 
       },
       { 
         path: 'game/:id', 
@@ -2464,34 +2881,39 @@ export class FiveDGameComponent implements OnInit, OnDestroy {
   }
 }
 
---- Файл: D:\Chess\src\app\features\five-d-chess\components\lobby\lobby.component.html ---
+--- Файл: D:\Chess\src\app\features\five-d-chess\components\lobby\five-d-lobby.component.html ---
 
-<!-- Файл: src/app/components/lobby/lobby.component.html -->
 <div class="lobby-container">
-  <div class="decorative-corner decorative-corner-tl"></div>
-  <div class="decorative-corner decorative-corner-br"></div>
-  
-  <div class="mode-indicator" *ngIf="currentMode">
+  <div class="maintenance-notice" *ngIf="isUnderMaintenance">
+    <div class="maintenance-content">
+      <div class="maintenance-icon">🔧</div>
+      <h3>На техническом обслуживании</h3>
+      <p>Этот режим игры временно недоступен</p>
+      <p>Попробуйте классические шахматы!</p>
+      <button class="classic-btn" (click)="goToClassic()">К классическим шахматам</button>
+    </div>
+  </div>
+  <div class="mode-indicator">
     <div class="mode-icon">{{currentMode.icon}}</div>
     <div class="mode-title">{{currentMode.title}}</div>
   </div>
 
-  <h2>Create or Join Game</h2>
+  <h2>Создать или присоединиться к игре</h2>
   
   <div class="game-options">
     <div class="option-card">
-      <h3>Create New Game</h3>
+      <h3>Создать новую игру</h3>
       <button (click)="createGame()" [disabled]="isLoading">
-        {{ isLoading ? 'Creating...' : 'Create Game' }}
+        {{ isLoading ? 'Создание...' : 'Создать игру' }}
       </button>
     </div>
 
     <div class="option-card">
-      <h3>Join Existing Game</h3>
+      <h3>Присоединиться к игре</h3>
       <div class="input-group">
-        <input [(ngModel)]="gameId" placeholder="Enter Game ID">
+        <input [(ngModel)]="gameId" placeholder="Введите ID игры">
         <button (click)="joinGame()" [disabled]="isLoading || !gameId">
-          {{ isLoading ? 'Joining...' : 'Join Game' }}
+          {{ isLoading ? 'Подключение...' : 'Присоединиться' }}
         </button>
       </div>
     </div>
@@ -2500,9 +2922,21 @@ export class FiveDGameComponent implements OnInit, OnDestroy {
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
+
+  <!-- Модальное окно с ссылкой -->
+  <div class="share-modal" *ngIf="showShareModal">
+    <div class="modal-content">
+      <h3>Ссылка на игру</h3>
+      <div class="link-box" (click)="copyGameLink()">
+        {{ gameLink }}
+        <span class="copy-message" *ngIf="linkCopied">Скопировано!</span>
+      </div>
+      <button class="close-btn" (click)="closeModal()">Начать игру</button>
+    </div>
+  </div>
 </div>
 
---- Файл: D:\Chess\src\app\features\five-d-chess\components\lobby\lobby.component.scss ---
+--- Файл: D:\Chess\src\app\features\five-d-chess\components\lobby\five-d-lobby.component.scss ---
 
 /* Файл: src/app/components/lobby/lobby.component.scss */
 
@@ -2621,7 +3055,7 @@ export class FiveDGameComponent implements OnInit, OnDestroy {
         transition: var(--transition);
 
         &:hover {
-          background: adjust-color(#3498db, $lightness: -10%);
+          background: #3498db;
           transform: translateY(-2px);
         }
 
@@ -2959,8 +3393,84 @@ export class FiveDGameComponent implements OnInit, OnDestroy {
     }
   }
 }
+.maintenance-notice {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
 
---- Файл: D:\Chess\src\app\features\five-d-chess\components\lobby\lobby.component.ts ---
+  .maintenance-content {
+    background: linear-gradient(135deg, #2c3e50, #4a6bda);
+    padding: 2rem;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 500px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #f1c40f;
+    animation: pulse 2s infinite;
+
+    .maintenance-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: bounce 2s infinite;
+    }
+
+    h3 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #f1c40f;
+    }
+
+    p {
+      margin: 0.5rem 0;
+      font-size: 1.2rem;
+    }
+  }
+
+  .classic-btn {
+    background: #f1c40f;
+    color: #2c3e50;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+
+    &:hover {
+      background: #e67e22;
+      transform: scale(1.05);
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(241, 196, 15, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.lobby-content.blurred {
+  filter: blur(5px);
+  pointer-events: none;
+}
+
+--- Файл: D:\Chess\src\app\features\five-d-chess\components\lobby\five-d-lobby.component.ts ---
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { MultiplayerService } from '../../../../shared/chess-core/services/multiplayer.service';
@@ -2970,79 +3480,66 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-classic-lobby',
-  templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.scss'],
+  templateUrl: './five-d-lobby.component.html',
+  styleUrls: ['./five-d-lobby.component.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule]
 })
-export class LobbyComponent {
-  gameId: string = '';
+export class FiveDLobbyComponent {
+  currentMode = {
+    path: '5d',
+    title: '5D Chess',
+    icon: '🌀',
+    description: 'Multidimensional time-travel chess'
+  };
+  showShareModal = false;
+  gameLink = '';
+  linkCopied = false;
   isLoading = false;
-  errorMessage: string | null = null;
-  currentMode: any;
-
-  chessModes = [
-    {
-      path: 'classic',
-      title: 'Classic Chess',
-      icon: '♔',
-      description: 'Traditional 8x8 chess'
-    },
-    {
-      path: '5d',
-      title: '5D Chess',
-      icon: '🌀',
-      description: 'Multidimensional chess'
-    },
-    {
-      path: 'dnd',
-      title: 'D&D Chess',
-      icon: '⚔️',
-      description: 'Fantasy RPG chess'
-    }
-  ];
-
+  errorMessage = '';
+  gameId = '';
+  isUnderMaintenance = true;
+  
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private multiplayer: MultiplayerService
   ) {}
-
-  ngOnInit(): void {
-    // Получаем тип игры из параметров маршрута
-    const gameType = this.route.snapshot.data['gameType'] || 'classic';
-    this.currentMode = this.chessModes.find(m => m.path === gameType) || this.chessModes[0];
+  goToClassic() {
+    this.router.navigate(['/chess/classic']);
   }
-
   createGame() {
     this.isLoading = true;
-    const gameType = this.route.snapshot.params['gameType'] || 'classic';
-    
-    this.multiplayer.createGame(gameType).then(id => {
-      this.router.navigate(['/chess/game', id]);
+    this.multiplayer.createGame('5d').then(id => {
+      this.gameLink = `${window.location.origin}/chess/5d/game/${id}`;
+      this.showShareModal = true;
+      this.linkCopied = false;
+      this.gameId = id;
     }).catch(error => {
-      this.errorMessage = 'Failed to create game: ' + error.message;
+      this.errorMessage = 'Ошибка при создании игры: ' + error.message;
     }).finally(() => {
       this.isLoading = false;
     });
   }
-  
+
+  copyGameLink() {
+    navigator.clipboard.writeText(this.gameLink).then(() => {
+      this.linkCopied = true;
+      setTimeout(() => this.linkCopied = false, 2000);
+    });
+  }
+
+  closeModal() {
+    this.showShareModal = false;
+    this.router.navigate(['/chess/5d/game', this.gameId]);
+  }
+
   joinGame() {
     if (!this.gameId) {
-      this.errorMessage = 'Please enter a game ID';
+      this.errorMessage = 'Введите ID игры';
       return;
     }
-    
-    this.isLoading = true;
-    const parts = this.gameId.split('-');
-    
-    if (parts.length < 2 || !['classic', '5d', 'dnd'].includes(parts[0])) {
-      this.errorMessage = 'Invalid game ID format';
-      this.isLoading = false;
-      return;
-    }
-    
-    this.router.navigate(['/chess/game', this.gameId]);
+    this.router.navigate(['/chess/5d/game', this.gameId]);
   }
 }
 
@@ -3329,13 +3826,15 @@ export class King extends ChessPiece {
     const dx = Math.abs(to.x - this.position.x);
     const dy = Math.abs(to.y - this.position.y);
     
-    if (dx > 1 || dy > 1) return false;
+    // Обычный ход короля
+    if (dx <= 1 && dy <= 1) {
+      const targetPiece = gameState.pieces.find(p => 
+        p.position.x === to.x && p.position.y === to.y
+      );
+      return !targetPiece || targetPiece.color !== this.color;
+    }
     
-    const targetPiece = gameState.pieces.find(p => 
-      p.position.x === to.x && p.position.y === to.y
-    );
-    
-    return !targetPiece || targetPiece.color !== this.color;
+    return false;
   }
 }
 
@@ -3845,13 +4344,10 @@ export class MultiplayerService implements OnDestroy {
     
     const currentState = this.gameService.getState();
     
-    // Проверяем, может ли текущий игрок сделать ход
     if (this.playerColor !== currentState.currentPlayer) {
-      console.log("Not your turn!");
       return false;
     }
     
-    // Получаем фигуру
     const piece = currentState.pieces.find(p => 
       p.position.x === from.x && p.position.y === from.y
     );
@@ -3859,13 +4355,7 @@ export class MultiplayerService implements OnDestroy {
     if (!piece || piece.color !== currentState.currentPlayer) {
       return false;
     }
-
-    // Проверяем возможность хода
-    if (!piece.canMove(to, currentState)) {
-      return false;
-    }
-
-    // Создаем новое состояние
+  
     const newPieces = currentState.pieces
       .filter(p => !(p.position.x === to.x && p.position.y === to.y))
       .map(p => {
@@ -3876,14 +4366,14 @@ export class MultiplayerService implements OnDestroy {
         }
         return p;
       });
-
+  
     const newState: GameState = {
       ...currentState,
       pieces: newPieces,
       currentPlayer: currentState.currentPlayer === 'white' ? 'black' : 'white',
       turnNumber: currentState.turnNumber + (currentState.currentPlayer === 'black' ? 1 : 0)
     };
-
+  
     try {
       await this.firebase.updateGame(newState);
       return true;
@@ -4758,8 +5248,11 @@ export class ChessboardComponent {
 
   constructor(private multiplayer: MultiplayerService) {}
 
-  isBoardFlipped = false;
-
+  isBoardFlipped = true;
+  ngOnInit() {
+    // Определяем нужно ли переворачивать доску
+    this.isBoardFlipped = this.state.currentUserColor === 'white';
+  }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['state']) {
       this.gameType = this.state?.gameType || 'classic';
@@ -4767,7 +5260,7 @@ export class ChessboardComponent {
       
       // Переворачиваем доску для черных
       if (this.state.currentUserColor) {
-        this.isBoardFlipped = this.state.currentUserColor === 'black';
+        this.isBoardFlipped = this.state.currentUserColor === 'white';
       }
     }
   }
@@ -4877,7 +5370,9 @@ export class ChessboardComponent {
   
     let success: boolean;
     
-    if (this.gameType === 'dnd') {
+    if (this.gameType === 'classic') {
+      success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
+    } else if (this.gameType === 'dnd') {
       switch (this.selectedMoveType) {
         case 'ability':
           success = await this.multiplayer.useAbility(this.selectedPiece, targetPosition);
@@ -4905,59 +5400,4 @@ export class ChessboardComponent {
   }
 }
 
-
---- Файл: D:\Chess\src\app\shared\ui\game-wrapper\game-wrapper.component.html ---
-
-<p>game-wrapper works!</p>
-
-
---- Файл: D:\Chess\src\app\shared\ui\game-wrapper\game-wrapper.component.scss ---
-
-
-
---- Файл: D:\Chess\src\app\shared\ui\game-wrapper\game-wrapper.component.ts ---
-
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { GameService } from '../../chess-core/services/game.service';
-import { MultiplayerService } from '../../chess-core/services/multiplayer.service';
-import { createInitialGameState } from '../../chess-core/models/game-state.model';
-
-@Component({
-  selector: 'app-game-wrapper',
-  templateUrl: './game-wrapper.component.html',
-  styleUrls: ['./game-wrapper.component.scss']
-})
-export class GameWrapperComponent implements OnInit {
-  gameId: string = '';
-  chessType: string = 'classic';
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    public gameService: GameService,
-    private multiplayer: MultiplayerService
-  ) {}
-
-  ngOnInit(): void {
-    this.gameId = this.route.snapshot.params['id'];
-    const gameType = this.gameId.split('-')[0] as 'classic' | '5d' | 'dnd';
-    
-    if (!['classic', '5d', 'dnd'].includes(gameType)) {
-      this.router.navigate(['/chess/classic']);
-      return;
-    }
-    
-    this.chessType = gameType;
-    this.gameService.setState(createInitialGameState(gameType));
-    
-    if (this.gameId) {
-      this.multiplayer.joinGame(this.gameId);
-    }
-  }
-
-  onLeaveGame(): void {
-    this.router.navigate(['/chess', this.chessType]);
-  }
-}
 

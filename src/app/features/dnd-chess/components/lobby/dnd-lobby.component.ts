@@ -24,13 +24,16 @@ export class DndLobbyComponent {
   isLoading = false;
   errorMessage = '';
   gameId = '';
-
+  isUnderMaintenance = true;
+  
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private multiplayer: MultiplayerService
   ) {}
-
+  goToClassic() {
+    this.router.navigate(['/chess/classic']);
+  }
   createGame() {
     this.isLoading = true;
     this.multiplayer.createGame('dnd').then(id => {

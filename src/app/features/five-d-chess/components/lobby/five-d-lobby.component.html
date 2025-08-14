@@ -1,4 +1,13 @@
 <div class="lobby-container">
+  <div class="maintenance-notice" *ngIf="isUnderMaintenance">
+    <div class="maintenance-content">
+      <div class="maintenance-icon">🔧</div>
+      <h3>На техническом обслуживании</h3>
+      <p>Этот режим игры временно недоступен</p>
+      <p>Попробуйте классические шахматы!</p>
+      <button class="classic-btn" (click)="goToClassic()">К классическим шахматам</button>
+    </div>
+  </div>
   <div class="mode-indicator">
     <div class="mode-icon">{{currentMode.icon}}</div>
     <div class="mode-title">{{currentMode.title}}</div>

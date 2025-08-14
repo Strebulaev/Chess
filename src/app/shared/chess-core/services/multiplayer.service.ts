@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { FirebaseService } from './firebase.service';
 import { GameService } from './game.service';
 import { createInitialGameState, GameState } from '../models/game-state.model';
-import { Position } from '../models/chess-piece.model';
+import { King, Position } from '../models/chess-piece.model';
 import { Subscription } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Route, Router } from '@angular/router';
@@ -75,52 +75,80 @@ export class MultiplayerService implements OnDestroy {
     
     const currentState = this.gameService.getState();
     
-    // Проверяем, может ли текущий игрок сделать ход
+    // Проверяем, что это ход текущего игрока
     if (this.playerColor !== currentState.currentPlayer) {
-      console.log("Not your turn!");
-      return false;
+        return false;
     }
     
-    // Получаем фигуру
     const piece = currentState.pieces.find(p => 
-      p.position.x === from.x && p.position.y === from.y
+        p.position.x === from.x && p.position.y === from.y
     );
     
     if (!piece || piece.color !== currentState.currentPlayer) {
-      return false;
+        return false;
     }
 
-    // Проверяем возможность хода
-    if (!piece.canMove(to, currentState)) {
-      return false;
+    // Для D&D режима - проверка способностей
+    if (currentState.gameType === 'dnd') {
+        if (isAbility && piece.abilityCharges <= 0) return false;
+        if (isPassive && !piece.canUsePassive()) return false;
     }
 
-    // Создаем новое состояние
+    // Создаем временное состояние для проверки
     const newPieces = currentState.pieces
-      .filter(p => !(p.position.x === to.x && p.position.y === to.y))
-      .map(p => {
-        if (p.position.x === from.x && p.position.y === from.y) {
-          const newPiece = this.gameService.createPieceInstance(p);
-          newPiece.move(to);
-          return newPiece;
-        }
-        return p;
-      });
+        .filter(p => !(p.position.x === to.x && p.position.y === to.y && p.color !== piece.color))
+        .map(p => {
+            if (p.position.x === from.x && p.position.y === from.y) {
+                const newPiece = this.gameService.createPieceInstance(p);
+                newPiece.move(to);
+                
+                // Применяем эффекты способностей для D&D
+                if (currentState.gameType === 'dnd') {
+                    if (isAbility) {
+                        newPiece.useAbility();
+                    }
+                    if (isPassive) {
+                        newPiece.usePassive();
+                    }
+                }
+                
+                return newPiece;
+            }
+            return p;
+        });
 
     const newState: GameState = {
-      ...currentState,
-      pieces: newPieces,
-      currentPlayer: currentState.currentPlayer === 'white' ? 'black' : 'white',
-      turnNumber: currentState.turnNumber + (currentState.currentPlayer === 'black' ? 1 : 0)
+        ...currentState,
+        pieces: newPieces,
+        currentPlayer: currentState.currentPlayer === 'white' ? 'black' : 'white',
+        turnNumber: currentState.turnNumber + (currentState.currentPlayer === 'black' ? 1 : 0)
     };
 
-    try {
-      await this.firebase.updateGame(newState);
-      return true;
-    } catch (error) {
-      console.error("Move failed:", error);
-      return false;
+    // Проверяем, не оставляет ли ход короля под шахом
+    if (currentState.gameType === 'classic' || currentState.gameType === '5d') {
+        const tempKingPos = newPieces.find(p => 
+            p instanceof King && p.color === currentState.currentPlayer
+        )?.position;
+        
+        if (tempKingPos && this.isSquareUnderAttack(tempKingPos, newState, currentState.currentPlayer === 'white' ? 'black' : 'white')) {
+            return false;
+        }
     }
+
+    try {
+        await this.firebase.updateGame(newState);
+        return true;
+    } catch (error) {
+        console.error("Move failed:", error);
+        return false;
+    }
+  }
+
+  private isSquareUnderAttack(pos: Position, state: GameState, byColor: 'white' | 'black'): boolean {
+    return state.pieces.some(p => 
+        p.color === byColor && 
+        p.canMove(pos, state)
+    );
   }
 
   ngOnDestroy(): void {

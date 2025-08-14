@@ -140,26 +140,32 @@ export class ChessboardComponent {
     
     const piece = this.getPieceAt(this.selectedPiece);
     if (!piece || piece.color !== this.state.currentUserColor) return;
-  
+
     let success: boolean;
     
-    if (this.gameType === 'dnd') {
-      switch (this.selectedMoveType) {
-        case 'ability':
-          success = await this.multiplayer.useAbility(this.selectedPiece, targetPosition);
-          break;
-        case 'passive':
-          success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, { isPassive: true });
-          break;
-        default:
-          success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
-      }
+    if (this.gameType === 'classic') {
+        success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
+    } else if (this.gameType === 'dnd') {
+        switch (this.selectedMoveType) {
+            case 'ability':
+                success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, { isAbility: true });
+                break;
+            case 'passive':
+                success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, { isPassive: true });
+                break;
+            default:
+                success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
+        }
     } else {
-      success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition, { isAbility: true });
+        // Для 5D шахмат
+        success = await this.multiplayer.makeMove(this.selectedPiece, targetPosition);
     }
 
     if (success) {
-      this.clearSelection();
+        this.clearSelection();
+    } else {
+        // Можно добавить уведомление о невозможности хода
+        console.log('Недопустимый ход');
     }
   }
 

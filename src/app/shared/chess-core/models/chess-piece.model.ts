@@ -218,12 +218,14 @@ export class King extends ChessPiece {
     const dx = Math.abs(to.x - this.position.x);
     const dy = Math.abs(to.y - this.position.y);
     
-    if (dx > 1 || dy > 1) return false;
+    // Обычный ход короля
+    if (dx <= 1 && dy <= 1) {
+      const targetPiece = gameState.pieces.find(p => 
+        p.position.x === to.x && p.position.y === to.y
+      );
+      return !targetPiece || targetPiece.color !== this.color;
+    }
     
-    const targetPiece = gameState.pieces.find(p => 
-      p.position.x === to.x && p.position.y === to.y
-    );
-    
-    return !targetPiece || targetPiece.color !== this.color;
+    return false;
   }
 }

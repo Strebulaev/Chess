@@ -6,10 +6,12 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [RouterOutlet, CommonModule, RouterLink]
+  imports: [RouterOutlet, CommonModule, RouterLink],
+  standalone: true
 })
 export class AppComponent {
   constructor(private router: Router) {}
+  
   chessModes = [
     {
       path: 'classic',
@@ -30,11 +32,16 @@ export class AppComponent {
       icon: '⚔️'
     }
   ];
+
+  isActiveMode(path: string): boolean {
+    return this.router.url.includes(`/chess/${path}`);
+  }
+
   getCurrentModeTitle(): string {
     const url = this.router.url;
     if (url.includes('/chess/classic')) return 'Classic Chess';
     if (url.includes('/chess/5d')) return '5D Chess';
     if (url.includes('/chess/dnd')) return 'D&D Chess';
     return 'Chess';
-}
+  }
 }

@@ -1,12 +1,11 @@
 <div class="app-container">
   <header class="app-header">
     <div class="header-content">
-
       <nav class="chess-menu">
         <a *ngFor="let mode of chessModes" 
            [routerLink]="['/chess', mode.path]" 
-           routerLinkActive="active"
            class="menu-item"
+           [class.active]="isActiveMode(mode.path)"
            [attr.title]="mode.title">
           <span class="menu-icon">{{mode.icon}}</span>
           <span class="menu-tooltip">

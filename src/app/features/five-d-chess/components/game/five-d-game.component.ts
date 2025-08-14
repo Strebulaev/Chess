@@ -1,20 +1,21 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GameService } from '../../services/game.service';
-import { MultiplayerService } from '../../services/multiplayer.service';
-import { ChessboardComponent } from '../chessboard/chessboard.component';
+import { GameService } from '../../../../shared/chess-core/services/game.service';
+import { MultiplayerService } from '../../../../shared/chess-core/services/multiplayer.service';
+import { ChessboardComponent } from '../../../../shared/ui/chessboard/chessboard.component';
 import { CommonModule } from '@angular/common';
-import { createInitialGameState } from '../../models/game-state.model';
-import { ChatComponent } from "../chat/chat.component";
+import { createInitialGameState } from '../../../../shared/chess-core/models/game-state.model';
+import { ChatComponent } from "../../../../shared/ui/chat/chat.component";
+import { ClassicGameService } from '../../services/five-d-game.service';
 
 @Component({
-  selector: 'app-game',
+  selector: 'app-classic-game',
+  templateUrl: './five-d-game.component.html',
+  styleUrls: ['./five-d-game.component.scss'],
   standalone: true,
-  imports: [ChessboardComponent, CommonModule, ChatComponent],
-  templateUrl: './game.component.html',
-  styleUrls: ['./game.component.scss']
+  imports: [ChessboardComponent, CommonModule, ChatComponent]
 })
-export class GameComponent implements OnInit, OnDestroy {
+export class FiveDGameComponent implements OnInit, OnDestroy {
   gameId: string = '';
   chessType: string = 'classic';
 

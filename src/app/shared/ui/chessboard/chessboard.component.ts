@@ -1,35 +1,39 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import type { GameState } from '../../models/game-state.model';
-import { Position } from '../../models/chess-piece.model';
-import { MultiplayerService } from '../../services/multiplayer.service';
+import type { GameState } from '../../chess-core/models/game-state.model';
+import { Position } from '../../chess-core/models/chess-piece.model';
+import { MultiplayerService } from '../../chess-core/services/multiplayer.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-chessboard',
   templateUrl: './chessboard.component.html',
   styleUrls: ['./chessboard.component.scss'],
+  standalone: true,
   imports: [CommonModule]
 })
-export class ChessboardComponent implements OnChanges {
+export class ChessboardComponent {
+  @Input() gameType: 'classic' | '5d' | 'dnd' = 'classic';
   @Input() state!: GameState;
   selectedPiece: Position | null = null;
   selectedPieceInfo: any = null;
   selectedMoveType: 'normal' | 'ability' | 'passive' = 'normal';
   possibleMoves: Position[] = [];
-  gameType: 'classic' | '5d' | 'dnd' = 'classic';
 
   constructor(private multiplayer: MultiplayerService) {}
 
-  isBoardFlipped = false;
-
+  isBoardFlipped = true;
+  ngOnInit() {
+    // Определяем нужно ли переворачивать доску
+    this.isBoardFlipped = this.state.currentUserColor === 'white';
+  }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['state']) {
       this.gameType = this.state?.gameType || 'classic';
       this.clearSelection();
       
-      // Определяем, нужно ли перевернуть доску
+      // Переворачиваем доску для черных
       if (this.state.currentUserColor) {
-        this.isBoardFlipped = this.state.currentUserColor === 'black';
+        this.isBoardFlipped = this.state.currentUserColor === 'white';
       }
     }
   }
@@ -132,8 +136,11 @@ export class ChessboardComponent implements OnChanges {
   }
 
   async makeMove(targetPosition: Position): Promise<void> {
-    if (!this.selectedPiece) return;
-
+    if (!this.selectedPiece || !this.state.currentUserColor) return;
+    
+    const piece = this.getPieceAt(this.selectedPiece);
+    if (!piece || piece.color !== this.state.currentUserColor) return;
+  
     let success: boolean;
     
     if (this.gameType === 'dnd') {

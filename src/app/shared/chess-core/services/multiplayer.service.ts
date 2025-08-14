@@ -5,6 +5,7 @@ import { createInitialGameState, GameState } from '../models/game-state.model';
 import { Position } from '../models/chess-piece.model';
 import { Subscription } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { Route, Router } from '@angular/router';
 
 
 interface MoveOptions {
@@ -22,7 +23,8 @@ export class MultiplayerService implements OnDestroy {
 
   constructor(
     private firebase: FirebaseService,
-    private gameService: GameService
+    private gameService: GameService,
+    private router: Router
   ) {}
 
   async createGame(gameType: 'classic' | '5d' | 'dnd' = 'classic'): Promise<string> {
@@ -34,20 +36,28 @@ export class MultiplayerService implements OnDestroy {
     await this.firebase.createGame(initialState);
     return initialState.id;
   }
-
+  
   joinGame(gameId: string): void {
     this.currentGameId = gameId;
-    this.playerColor = 'black';
     
     this.gameSubscription = this.firebase.getGameState(gameId).subscribe({
       next: (state: GameState) => {
-        // Если черные еще не назначены, назначаем себя
-        if (!state.blackDeviceId) {
+        // Определяем цвет игрока
+        if (state.whiteDeviceId === this.deviceId) {
+          this.playerColor = 'white';
+        } else if (!state.blackDeviceId) {
+          this.playerColor = 'black';
           const updatedState = {
             ...state,
             blackDeviceId: this.deviceId
           };
           this.firebase.updateGame(updatedState);
+        } else if (state.blackDeviceId === this.deviceId) {
+          this.playerColor = 'black';
+        } else {
+          // Игра уже занята двумя игроками
+          this.router.navigate(['/chess', gameId.split('-')[0]]);
+          return;
         }
         
         this.gameService.setState({

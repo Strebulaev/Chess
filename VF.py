@@ -14,7 +14,7 @@ def process_directory(directory, extensions, output_file):
                         out.write(f'--- Файл: {file_path} ---\n\nОшибка чтения файла: {str(e)}\n\n')
 
 if __name__ == "__main__":
-    directory = "D:\DnDchess\src"
+    directory = "D:\Chess\src"
     extensions = ".html .ts .scss .css .py".split()
     output_file = "files.txt"
     

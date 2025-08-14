@@ -1,4 +1,4 @@
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Route, Router } from '@angular/router';
 import { MultiplayerService } from '../../../../shared/chess-core/services/multiplayer.service';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -12,51 +12,56 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./classic-lobby.component.scss']
 })
 export class ClassicLobbyComponent {
-  gameId: string = '';
-  isLoading = false;
-  errorMessage: string | null = null;
   currentMode = {
     path: 'classic',
     title: 'Classic Chess',
     icon: '♔',
     description: 'Traditional 8x8 chess with standard rules'
   };
+  showShareModal = false;
+  gameLink = '';
+  linkCopied = false;
+  isLoading = false;
+  errorMessage = '';
+  gameId = '';
 
   constructor(
+    private route: ActivatedRoute,
     private router: Router,
     private multiplayer: MultiplayerService
   ) {}
 
   createGame() {
     this.isLoading = true;
-    this.multiplayer.createGame('classic') // для classic-lobby
-      .then(id => {
-        // Переход на соответствующий компонент игры
-        this.router.navigate(['/chess/classic/game', id]);
-      })
-      .catch(error => {
-        this.errorMessage = error.message;
-      })
-      .finally(() => {
-        this.isLoading = false;
-      });
+    this.multiplayer.createGame('classic').then(id => {
+      this.gameLink = `${window.location.origin}/chess/classic/game/${id}`;
+      this.showShareModal = true;
+      this.linkCopied = false;
+      this.gameId = id;
+    }).catch(error => {
+      this.errorMessage = 'Ошибка при создании игры: ' + error.message;
+    }).finally(() => {
+      this.isLoading = false;
+    });
   }
-  
+
+  copyGameLink() {
+    navigator.clipboard.writeText(this.gameLink).then(() => {
+      this.linkCopied = true;
+      setTimeout(() => this.linkCopied = false, 2000);
+    });
+  }
+
+  closeModal() {
+    this.showShareModal = false;
+    this.router.navigate(['/chess/classic/game', this.gameId]);
+  }
+
   joinGame() {
     if (!this.gameId) {
-      this.errorMessage = 'Please enter a game ID';
+      this.errorMessage = 'Введите ID игры';
       return;
     }
-    
-    this.isLoading = true;
-    const parts = this.gameId.split('-');
-    
-    if (parts.length < 2 || !['classic', '5d', 'dnd'].includes(parts[0])) {
-      this.errorMessage = 'Invalid game ID format';
-      this.isLoading = false;
-      return;
-    }
-    
     this.router.navigate(['/chess/classic/game', this.gameId]);
   }
 }

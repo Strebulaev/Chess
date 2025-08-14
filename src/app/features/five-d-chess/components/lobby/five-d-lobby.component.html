@@ -1,29 +1,25 @@
-<!-- Файл: src/app/components/lobby/lobby.component.html -->
 <div class="lobby-container">
-  <div class="decorative-corner decorative-corner-tl"></div>
-  <div class="decorative-corner decorative-corner-br"></div>
-  
-  <div class="mode-indicator" *ngIf="currentMode">
+  <div class="mode-indicator">
     <div class="mode-icon">{{currentMode.icon}}</div>
     <div class="mode-title">{{currentMode.title}}</div>
   </div>
 
-  <h2>Create or Join Game</h2>
+  <h2>Создать или присоединиться к игре</h2>
   
   <div class="game-options">
     <div class="option-card">
-      <h3>Create New Game</h3>
+      <h3>Создать новую игру</h3>
       <button (click)="createGame()" [disabled]="isLoading">
-        {{ isLoading ? 'Creating...' : 'Create Game' }}
+        {{ isLoading ? 'Создание...' : 'Создать игру' }}
       </button>
     </div>
 
     <div class="option-card">
-      <h3>Join Existing Game</h3>
+      <h3>Присоединиться к игре</h3>
       <div class="input-group">
-        <input [(ngModel)]="gameId" placeholder="Enter Game ID">
+        <input [(ngModel)]="gameId" placeholder="Введите ID игры">
         <button (click)="joinGame()" [disabled]="isLoading || !gameId">
-          {{ isLoading ? 'Joining...' : 'Join Game' }}
+          {{ isLoading ? 'Подключение...' : 'Присоединиться' }}
         </button>
       </div>
     </div>
@@ -31,5 +27,17 @@
 
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
+  </div>
+
+  <!-- Модальное окно с ссылкой -->
+  <div class="share-modal" *ngIf="showShareModal">
+    <div class="modal-content">
+      <h3>Ссылка на игру</h3>
+      <div class="link-box" (click)="copyGameLink()">
+        {{ gameLink }}
+        <span class="copy-message" *ngIf="linkCopied">Скопировано!</span>
+      </div>
+      <button class="close-btn" (click)="closeModal()">Начать игру</button>
+    </div>
   </div>
 </div>
